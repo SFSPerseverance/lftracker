@@ -97,7 +97,7 @@ async function loadSVGInline() {
         // setup interactions
         enableWheelZoom();
         enableDragPan();
-        enablePinchZoom(); // ADD THIS LINE
+        enableTouchControls();
         window.addEventListener('resize', onResize);
 
         // ensure initial centering (no pan possible at default)
@@ -308,27 +308,58 @@ function enableWheelZoom() {
     }, { passive: false });
 }
 
-function enablePinchZoom() {
+function enableTouchControls() {
+  let touchLast = null;
   let lastDist = null;
   let lastCenter = null;
 
-  container.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 2) {
-      const t1 = e.touches[0];
-      const t2 = e.touches[1];
+  container.addEventListener('touchstart', (ev) => {
+    if (ev.touches.length === 1) {
+      // Single touch - pan
+      if (!isPannable()) return;
+      const t = ev.touches[0];
+      touchLast = { x: t.clientX, y: t.clientY };
+      ev.preventDefault();
+    } else if (ev.touches.length === 2) {
+      // Two fingers - pinch zoom
+      touchLast = null; // cancel any pan
+      const t1 = ev.touches[0];
+      const t2 = ev.touches[1];
       lastDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
       lastCenter = {
         x: (t1.clientX + t2.clientX) / 2,
         y: (t1.clientY + t2.clientY) / 2
       };
-      e.preventDefault();
+      ev.preventDefault();
     }
-  }, { passive: false });
+  }, {passive: false});
 
-  container.addEventListener('touchmove', (e) => {
-    if (e.touches.length === 2 && lastDist && lastCenter) {
-      const t1 = e.touches[0];
-      const t2 = e.touches[1];
+  container.addEventListener('touchmove', (ev) => {
+    if (ev.touches.length === 1 && touchLast) {
+      // Single touch - pan
+      const t = ev.touches[0];
+      const dx = t.clientX - touchLast.x;
+      const dy = t.clientY - touchLast.y;
+      touchLast = { x: t.clientX, y: t.clientY };
+
+      const rect = container.getBoundingClientRect();
+      const dxSvg = dx * (curVB.w / rect.width);
+      const dySvg = dy * (curVB.h / rect.height);
+
+      let newX = curVB.x - dxSvg;
+      let newY = curVB.y - dySvg;
+
+      newX = clamp(newX, origVB.x, origVB.x + origVB.w - curVB.w);
+      newY = clamp(newY, origVB.y, origVB.y + origVB.h - curVB.h);
+
+      curVB.x = newX;
+      curVB.y = newY;
+      updateViewBox();
+      ev.preventDefault();
+    } else if (ev.touches.length === 2 && lastDist && lastCenter) {
+      // Two fingers - pinch zoom
+      const t1 = ev.touches[0];
+      const t2 = ev.touches[1];
       const newDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
       const newCenter = {
         x: (t1.clientX + t2.clientX) / 2,
@@ -341,15 +372,30 @@ function enablePinchZoom() {
 
       lastDist = newDist;
       lastCenter = newCenter;
-      e.preventDefault();
+      ev.preventDefault();
     }
-  }, { passive: false });
+  }, {passive: false});
 
-  container.addEventListener('touchend', (e) => {
-    if (e.touches.length < 2) {
+  container.addEventListener('touchend', (ev) => {
+    if (ev.touches.length === 0) {
+      // All fingers lifted
+      touchLast = null;
       lastDist = null;
       lastCenter = null;
+    } else if (ev.touches.length === 1) {
+      // One finger remaining - reset pinch but could continue pan
+      lastDist = null;
+      lastCenter = null;
+      // Reset touchLast for the remaining finger
+      const t = ev.touches[0];
+      touchLast = { x: t.clientX, y: t.clientY };
     }
+  });
+
+  container.addEventListener('touchcancel', () => {
+    touchLast = null;
+    lastDist = null;
+    lastCenter = null;
   });
 }
 

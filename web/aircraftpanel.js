@@ -122,6 +122,15 @@ function createAircraftPanel() {
 // Show aircraft details in the panel
 window.showAircraftDetails = function(aircraft) {
   window.selectedAircraft = aircraft;
+
+   const aircraftId = aircraft.id || aircraft.callsign;
+  const marker = document.querySelector(`[data-aircraft-id="${aircraftId}"]`);
+  if (marker) {
+    const icon = marker.querySelector('path');
+    if (icon) {
+      icon.setAttribute('fill', 'rgb(230, 77, 46)');
+    }
+  }
   
   const panel = createAircraftPanel();
   
