@@ -1,31 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LFTracker Map</title>
-<style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background: #eef2f5;
-  }
-  svg {
-    max-width: 90%;
-    max-height: 90%;
-    border: 2px solid #ccc;
-    border-radius: 12px;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LFTracker Map</title>
+  <link rel="stylesheet" href="web/style.css">
 </head>
 <body>
 
-<!-- Inline SVG -->
-<object type="image/svg+xml" data="assets/legacyflightmap_light.svg"></object>
+<div id="map-container">
+  <object id="map" type="image/svg+xml" data="assets/legacyflightmap_light.svg"></object>
+</div>
 
+<script src="web/script.js"></script>
 </body>
 </html>
