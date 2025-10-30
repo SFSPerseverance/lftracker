@@ -1,23 +1,34 @@
-/* Make the container full viewport and scrollable */
+/* Full viewport container that scrolls when content is bigger */
 html, body {
-  margin: 0;
-  padding: 0;
   height: 100%;
   width: 100%;
-  overflow: hidden; /* optional: prevent body scroll if using container scroll */
+  margin: 0;
+  padding: 0;
+  background: #eef2f5;
+  overflow: hidden; /* keep the page itself from scrolling */
+  -webkit-font-smoothing: antialiased;
 }
 
+/* map container is the only scrollable area */
 #map-container {
   width: 100vw;
   height: 100vh;
-  overflow: auto; /* enable scrolling if SVG is larger than viewport */
-  background-color: #eef2f5;
-  cursor: grab;
+  overflow: auto;            /* enable scrolling */
+  cursor: grab;              /* show grab cursor for dragging */
+  touch-action: none;        /* let JS handle touch pan */
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
 }
 
-/* Optional: make the SVG itself take full width */
-#map {
+/* Make any inline SVG display as a block (no extra whitespace) */
+#map-container svg {
   display: block;
-  width: 100%;
-  height: 100%;
+  user-select: none;
+  -webkit-user-drag: none;
+  image-rendering: optimizeSpeed;
+}
+
+/* When grabbing, show grabbing cursor */
+#map-container.grabbing {
+  cursor: grabbing;
 }
