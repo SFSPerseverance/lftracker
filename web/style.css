@@ -5,14 +5,15 @@ html, body {
   margin: 0;
   padding: 0;
   background: #eef2f5;
-  overflow: hidden;            /* no page scrollbars */
+  overflow: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
+/* map area */
 #map-container {
   width: 100vw;
   height: 100vh;
-  overflow: hidden;            /* hide scrollbars */
+  overflow: hidden;            /* hide scrollbars; we pan by transforms */
   cursor: grab;
   touch-action: none;          /* JS handles touch pan/zoom */
   box-sizing: border-box;
@@ -20,14 +21,16 @@ html, body {
   position: relative;
 }
 
-/* Inline SVG should be sized by its natural pixels; we'll use transforms */
+/* Inline SVG: use vector transforms, preserve visual fidelity */
 #map-container svg {
   display: block;
   user-select: none;
   -webkit-user-drag: none;
-  image-rendering: optimizeSpeed;
-  background: transparent !important;
-  transform-origin: 0 0;       /* top-left origin so transforms math is simpler */
+  /* remove any pixel-raster scaling hints */
+  image-rendering: auto !important;
+  shape-rendering: geometricPrecision !important;
+  text-rendering: geometricPrecision !important;
+  transform-origin: 0 0;       /* top-left origin for transforms */
   will-change: transform;
   pointer-events: auto;
 }
