@@ -441,7 +441,7 @@ function worldToSvg(wx, wz, latLonFallback = null) {
   const lat = wx;
   const lon = wz;
   if (isFinite(lat) && isFinite(lon)) {
-    const normX = (lon + 180) / 360; // 0..1
+    const normX = (-lon + 180) / 360; // 0..1 (flip longitude)
     const normY = (90 - lat) / 180;  // 0..1 (flip so north top)
     const sx = origVB.x + normX * origVB.w;
     const sy = origVB.y + normY * origVB.h;
@@ -468,21 +468,23 @@ function upsertSVGPlane(aircraft) {
     const g = document.createElementNS('http://www.w3.org/2000/svg','g');
     g.setAttribute('data-aircraft-id', id);
     g.style.cursor = 'pointer';
-    // icon: triangle path pointing up (origin at 0,0)
+    
+    // icon: airplane shape in LegacyFlight Gold (rgb(255, 170, 0))
     const icon = document.createElementNS('http://www.w3.org/2000/svg','path');
-    icon.setAttribute('d','M0,-10 L6,8 L-6,8 Z');
-    icon.setAttribute('vector-effect','non-scaling-stroke');
-    icon.setAttribute('fill','#64b5f6');
+    // Airplane silhouette pointing upward (north)
+    icon.setAttribute('d','M0,-12 L2,-10 L2,-2 L8,4 L8,6 L2,4 L2,8 L3,10 L3,11 L0,10 L-3,11 L-3,10 L-2,8 L-2,4 L-8,6 L-8,4 L-2,-2 L-2,-10 Z');
+    icon.setAttribute('fill','rgb(255, 170, 0)');
     icon.setAttribute('stroke','#222');
-    icon.setAttribute('stroke-width','0.5');
+    icon.setAttribute('stroke-width','0.8');
 
-    // label
+    // label (hidden by default)
     const label = document.createElementNS('http://www.w3.org/2000/svg','text');
     label.setAttribute('x','12');
     label.setAttribute('y','4');
     label.setAttribute('font-size','10');
     label.setAttribute('font-family','Arial, sans-serif');
     label.setAttribute('fill','#ffffff');
+    label.setAttribute('visibility','hidden');
     label.textContent = aircraft.callsign || id;
 
     g.appendChild(icon);
@@ -553,9 +555,14 @@ function aircraftRenderLoop() {
     const coords = worldToSvg(entry.state.x, entry.state.z, true); // pass lat/lon fallback
     if (!coords) return;
 
-    // apply transform: translate(sx,sy) rotate(heading)
-    const h = (entry.state.heading || 0);
-    entry.g.setAttribute('transform', `translate(${coords.sx}, ${coords.sy}) rotate(${h})`);
+    // Calculate scale factor to keep icon constant size
+    // Current zoom scale relative to original viewBox
+    const iconScale = 1 / currentScale;
+
+    // apply transform: translate(sx,sy) rotate(heading) scale to counter zoom
+    // Fix heading: subtract 90 degrees to correct the orientation
+    const h = (entry.state.heading || 0) - 90;
+    entry.g.setAttribute('transform', `translate(${coords.sx}, ${coords.sy}) rotate(${h}) scale(${iconScale})`);
   });
 
   // occasionally cleanup
