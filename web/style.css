@@ -39,3 +39,5 @@ html, body {
 #map-container.grabbing {
   cursor: grabbing;
 }
+
+#raster-warning { pointer-events: none; }
