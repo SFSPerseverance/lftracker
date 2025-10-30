@@ -68,7 +68,7 @@ async function getRobloxUsername(userId) {
   }
   
   try {
-    const response = await fetch(`https://users.roblox.com/v1/users/${userId}`);
+    const response = await fetch(`https://users.roproxy.com/v1/users/${userId}`);
     if (!response.ok) {
       throw new Error('User not found');
     }
