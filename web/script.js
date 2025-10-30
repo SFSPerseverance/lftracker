@@ -221,9 +221,7 @@ function enableDragPan() {
 
     window.addEventListener('mousemove', (e) => {
         if (!dragging || !last) return;
-        if (!container.classList.contains('grabbing')) {
-            container.classList.add('grabbing');
-        }
+        container.style.cursor = 'grabbing';
         // delta in client pixels
         const dx = e.clientX - last.x;
         const dy = e.clientY - last.y;
@@ -251,7 +249,7 @@ function enableDragPan() {
         if (!dragging) return;
         dragging = false;
         last = null;
-        container.classList.remove('grabbing');
+        container.style.cursor = ''; // Reset to default
     });
 
     // touch support
