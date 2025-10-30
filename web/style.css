@@ -14,7 +14,7 @@ html, body {
   width: 100vw;
   height: 100vh;
   overflow: hidden;            /* hide scrollbars; we pan by transforms */
-  cursor: grab;
+  cursor: default;
   touch-action: none;          /* JS handles touch pan/zoom */
   box-sizing: border-box;
   background: #7C96A7;         /* ocean color behind islands */
