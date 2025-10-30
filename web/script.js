@@ -35,7 +35,7 @@ function showRasterWarning() {
       zIndex: 9999,
       boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
     });
-    d.textContent = 'Note: this SVG contains embedded raster images — those will pixelate when zoomed.';
+    d.textContent = 'Note: this SVG contains embedded raster images – those will pixelate when zoomed.';
     document.body.appendChild(d);
   }
 }
@@ -77,9 +77,9 @@ async function loadSVGInline() {
     curVB = { ...origVB };
     currentScale = 1;
 
-    // make the SVG fill the container width (so default covers width)
+    // make the SVG fill the container (centered both ways)
     svgEl.style.width = '100%';
-    svgEl.style.height = 'auto';
+    svgEl.style.height = '100%';
     svgEl.style.display = 'block';
 
     // setup interactions
@@ -96,8 +96,19 @@ async function loadSVGInline() {
 }
 
 // update the SVG's viewBox attribute from curVB
-function updateViewBox() {
+function updateViewBox(smooth = false) {
   if (!svgEl || !curVB) return;
+  
+  // add smooth transition if requested
+  if (smooth) {
+    svgEl.style.transition = 'none';
+    // force reflow
+    svgEl.offsetHeight;
+    svgEl.style.transition = 'all 0.15s ease-out';
+  } else {
+    svgEl.style.transition = 'none';
+  }
+  
   // set viewBox as integers or floats
   svgEl.setAttribute('viewBox', `${curVB.x} ${curVB.y} ${curVB.w} ${curVB.h}`);
 }
@@ -155,7 +166,7 @@ function zoomAt(pointClientX, pointClientY, factor) {
   // compute currentScale relative to original: how many times zoomed-in
   currentScale = origVB.w / curVB.w;
 
-  // disallow zooming out beyond default scale (i.e., curVB.w > origVB.w) — clamp
+  // disallow zooming out beyond default scale (i.e., curVB.w > origVB.w) – clamp
   if (curVB.w > origVB.w) {
     curVB = { ...origVB };
     currentScale = 1;
@@ -265,6 +276,9 @@ function enableWheelZoom() {
 
     // call zoomAt with factor; zoomAt handles clamping so we don't zoom out below default
     zoomAt(clientX, clientY, factor);
+    
+    // apply smooth transition for wheel zoom
+    updateViewBox(true);
   }, { passive: false });
 }
 

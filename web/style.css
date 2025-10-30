@@ -33,6 +33,11 @@ html, body {
   transform-origin: 0 0;       /* top-left origin for transforms */
   will-change: transform;
   pointer-events: auto;
+  transition: none;            /* transitions controlled by JS */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 /* grabbing cursor while panning */
