@@ -112,9 +112,6 @@ window.showAircraftDetails = async function(aircraft) {
   let username = 'Unknown Player';
   
   if (userId) {
-    // Show loading state
-    const callsignEl = document.getElementById('aircraft-callsign');
-    callsignEl.textContent = 'Loading...';
     
     // Fetch username
     const fetchedUsername = await getRobloxUsername(userId);
@@ -124,7 +121,7 @@ window.showAircraftDetails = async function(aircraft) {
   }
 
   const pilotEl = document.getElementById('aircraft-pilot');
-  pilotEl.textContent = pUsername || 'Unknown';
+  pilotEl.textContent = username || 'Unknown';
   
   // Update image (placeholder for now)
   const imageContainer = document.getElementById('aircraft-image-container');
