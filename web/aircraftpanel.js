@@ -4,6 +4,8 @@
 // Global variable to track selected aircraft
 window.selectedAircraft = null;
 
+const usernameCache = new Map();
+
 // Create the panel element
 function createAircraftPanel() {
   // Check if panel already exists
