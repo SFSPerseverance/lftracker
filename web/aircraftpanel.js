@@ -90,7 +90,7 @@ function extractUserId(aircraftId) {
 }
 
 // Show aircraft details in the panel
-window.showAircraftDetails = function(aircraft) {
+window.showAircraftDetails = async function(aircraft) {
   window.selectedAircraft = aircraft;
 
   const aircraftId = aircraft.id || aircraft.callsign;
@@ -108,9 +108,22 @@ window.showAircraftDetails = function(aircraft) {
   const callsignEl = document.getElementById('aircraft-callsign');
   callsignEl.textContent = aircraft.callsign || 'Unknown';
 
+  const userId = extractUserId(aircraft.id);
+  let username = 'Unknown Player';
+  
+  if (userId) {
+    // Show loading state
+    const callsignEl = document.getElementById('aircraft-callsign');
+    callsignEl.textContent = 'Loading...';
+    
+    // Fetch username
+    const fetchedUsername = await getRobloxUsername(userId);
+    if (fetchedUsername) {
+      username = fetchedUsername;
+    }
+  }
+
   const pilotEl = document.getElementById('aircraft-pilot');
-  const pId = extractUserId(aircraft.id);
-  const pUsername = getRobloxUsername(pId);
   pilotEl.textContent = pUsername || 'Unknown';
   
   // Update image (placeholder for now)
