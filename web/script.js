@@ -1,46 +1,50 @@
 // web/script.js
-// Loads web/legacyflightmap_light.svg inline, removes white background rects,
-// centers the SVG, enables drag-to-pan and wheel-to-zoom (zoom under mouse),
-// and stores files in /web/ (as requested).
+// - Inlines web/legacyflightmap_light.svg
+// - Removes white fullscreen rects
+// - Centers the SVG and makes default scale such that SVG width == viewport width
+// - Disallows zooming out below that default scale
+// - Zooms centered under the mouse pointer
+// - Drag-to-pan (mouse + touch)
 
 const container = document.getElementById('map-container');
 const svgPath = 'assets/legacyflightmap_light.svg';
 
 let svgEl = null;
 let naturalWidth = 1000, naturalHeight = 1000;
+let defaultScale = 1;
 let scale = 1;
-const MIN_SCALE = 0.1;
-const MAX_SCALE = 8;
+let MIN_SCALE = 1; // will be set to defaultScale after load
+const MAX_SCALE_MULTIPLIER = 8;
+let tx = 0, ty = 0; // translation in pixels (applied BEFORE scale)
+let isDragging = false;
+let dragStart = null;
 
-// Fetch & inline the SVG, clean it, and initialize sizing & handlers
 async function init() {
   try {
     const res = await fetch(svgPath);
     if (!res.ok) throw new Error('Fetch failed: ' + res.status);
     const text = await res.text();
-
     container.innerHTML = text;
     svgEl = container.querySelector('svg');
-    if (!svgEl) throw new Error('No <svg> in file');
+    if (!svgEl) throw new Error('No <svg> element found in ' + svgPath);
 
-    // Force transparent svg background and remove full-size white rects
+    // remove white fullscreen rects (common in exported svgs)
     svgEl.style.background = 'transparent';
-    const rects = Array.from(svgEl.querySelectorAll('rect'));
-    rects.forEach(r => {
-      const fill = (r.getAttribute('fill') || '').toLowerCase();
+    Array.from(svgEl.querySelectorAll('rect')).forEach(r => {
+      const fill = (r.getAttribute('fill') || '').trim().toLowerCase();
       const rw = parseFloat(r.getAttribute('width') || '0');
       const rh = parseFloat(r.getAttribute('height') || '0');
-
-      // Remove rects that are white or approximate full viewBox size
+      const vb = svgEl.viewBox && svgEl.viewBox.baseVal;
+      const vbw = vb ? vb.width : 0;
+      const vbh = vb ? vb.height : 0;
       if (fill === '#fff' || fill === '#ffffff' || fill === 'white' ||
-          (svgEl.viewBox && rw >= svgEl.viewBox.baseVal.width - 1 && rh >= svgEl.viewBox.baseVal.height - 1)) {
+          (vb && rw && rh && (rw >= vbw - 1 && rh >= vbh - 1))) {
         r.remove();
       }
     });
 
-    // If there is no viewBox, set one using bbox so units are consistent
+    // ensure viewBox exists; if not, create from bbox
     if (!svgEl.hasAttribute('viewBox')) {
-      // compute bbox from contents
       let bbox;
       try { bbox = svgEl.getBBox(); }
       catch (e) { bbox = { x: 0, y: 0, width: 1000, height: 1000 }; }
@@ -51,155 +55,172 @@ async function init() {
     naturalWidth = svgEl.viewBox.baseVal.width;
     naturalHeight = svgEl.viewBox.baseVal.height;
 
-    // set an initial scale so the map is comfortably visible.
-    // Choose the larger of width or height fit to ensure some scroll area exists.
-    const fitScaleX = container.clientWidth / naturalWidth;
-    const fitScaleY = container.clientHeight / naturalHeight;
-    const initialScale = Math.max(fitScaleX, fitScaleY) * 0.9; // slightly smaller than full fit
-    scale = Math.max(initialScale, 1); // default to at least 1 for most maps
+    // remove width/height attrs so they don't interfere
+    svgEl.removeAttribute('width');
+    svgEl.removeAttribute('height');
 
-    applyScale(scale);
+    // set the SVG element to its natural pixel size (we'll transform it)
+    svgEl.style.width = naturalWidth + 'px';
+    svgEl.style.height = naturalHeight + 'px';
 
-    // center the SVG in the container (set scroll to center)
-    centerSVG();
+    // compute default scale so svg width covers the full container width
+    computeDefaultScale();
 
-    // interactions
-    enableDragPan(container);
-    enableWheelZoom(container);
-    // optional: keyboard +/- to zoom
-    enableKeyboardZoom(container);
+    // set initial transform (centered)
+    scale = defaultScale;
+    MIN_SCALE = defaultScale;
+    applyTransform(center = true);
+
+    // interaction handlers
+    enableDragPan();
+    enableWheelZoom();
+    window.addEventListener('resize', onResize);
   } catch (err) {
-    console.error('Could not initialize map:', err);
-    container.innerHTML = `<p style="padding:1rem;color:#900">Error loading map: ${err.message}</p>`;
+    console.error('Map init error:', err);
+    container.innerHTML = `<div style="padding:1rem;color:#900">Error loading map: ${err.message}</div>`;
   }
 }
 
-// Apply CSS pixel size to the SVG based on viewBox * scale
-function applyScale(s) {
-  scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, s));
-  svgEl.style.width  = (naturalWidth * scale) + 'px';
-  svgEl.style.height = (naturalHeight * scale) + 'px';
+function computeDefaultScale() {
+  const cw = container.clientWidth || window.innerWidth;
+  defaultScale = cw / naturalWidth;
+  // If naturalWidth is 0 for some reason fall back
+  if (!isFinite(defaultScale) || defaultScale <= 0) defaultScale = 1;
 }
 
-// Center the SVG by scrolling so map is centered in viewport
-function centerSVG() {
-  // Wait a tick so sizes are applied
-  requestAnimationFrame(() => {
-    const extraX = Math.max(0, svgEl.clientWidth - container.clientWidth);
-    const extraY = Math.max(0, svgEl.clientHeight - container.clientHeight);
-    container.scrollLeft = Math.round(extraX / 2);
-    container.scrollTop  = Math.round(extraY / 2);
-  });
+// apply transform: translate(tx,ty) then scale(scale)
+// if center === true, center the image inside the container
+function applyTransform(center = false) {
+  if (!svgEl) return;
+  if (center) {
+    // center by computing tx/ty so svg is centered in container
+    const svgPxW = naturalWidth * scale;
+    const svgPxH = naturalHeight * scale;
+    tx = (container.clientWidth - svgPxW) / 2;
+    ty = (container.clientHeight - svgPxH) / 2;
+  }
+  svgEl.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
 }
 
-// Drag-to-pan (on container: scrollLeft/scrollTop)
-function enableDragPan(el) {
-  let isDragging = false;
-  let startX = 0, startY = 0, startScrollLeft = 0, startScrollTop = 0;
-
-  el.addEventListener('mousedown', (e) => {
-    if (e.button !== 0) return; // left button only
+// Drag-to-pan handlers (using translate, no scrollbars)
+function enableDragPan() {
+  container.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
     isDragging = true;
-    el.classList.add('grabbing');
-    startX = e.clientX;
-    startY = e.clientY;
-    startScrollLeft = el.scrollLeft;
-    startScrollTop = el.scrollTop;
+    dragStart = {x: e.clientX, y: e.clientY, tx, ty};
+    container.classList.add('grabbing');
     e.preventDefault();
   });
-
   window.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    el.scrollLeft = startScrollLeft - dx;
-    el.scrollTop  = startScrollTop  - dy;
+    if (!isDragging || !dragStart) return;
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+    tx = dragStart.tx + dx;
+    ty = dragStart.ty + dy;
+    applyTransform(false);
   });
-
   window.addEventListener('mouseup', () => {
     if (!isDragging) return;
     isDragging = false;
-    el.classList.remove('grabbing');
+    dragStart = null;
+    container.classList.remove('grabbing');
   });
 
-  // touch
+  // touch support
   let touchStart = null;
-  el.addEventListener('touchstart', (ev) => {
+  container.addEventListener('touchstart', (ev) => {
     if (ev.touches.length !== 1) return;
     const t = ev.touches[0];
-    touchStart = { x: t.clientX, y: t.clientY, left: el.scrollLeft, top: el.scrollTop };
+    touchStart = { x: t.clientX, y: t.clientY, tx, ty };
+    isDragging = true;
   }, {passive: false});
-
-  el.addEventListener('touchmove', (ev) => {
-    if (!touchStart || ev.touches.length !== 1) return;
+  container.addEventListener('touchmove', (ev) => {
+    if (!isDragging || !touchStart || ev.touches.length !== 1) return;
     const t = ev.touches[0];
     const dx = t.clientX - touchStart.x;
     const dy = t.clientY - touchStart.y;
-    el.scrollLeft = touchStart.left - dx;
-    el.scrollTop  = touchStart.top  - dy;
+    tx = touchStart.tx + dx;
+    ty = touchStart.ty + dy;
+    applyTransform(false);
     ev.preventDefault();
   }, {passive: false});
-
-  el.addEventListener('touchend', () => { touchStart = null; });
-}
-
-// Wheel-to-zoom centered on the mouse position inside the container
-function enableWheelZoom(el) {
-  el.addEventListener('wheel', (e) => {
-    // If user holds ctrl/alt and prefers browser zoom, you might skip; we handle raw wheel
-    e.preventDefault();
-
-    // location of pointer relative to container
-    const rect = el.getBoundingClientRect();
-    const mouseOffsetX = e.clientX - rect.left;
-    const mouseOffsetY = e.clientY - rect.top;
-
-    // position in "content pixels" before zoom
-    const contentX = el.scrollLeft + mouseOffsetX;
-    const contentY = el.scrollTop  + mouseOffsetY;
-
-    // wheel direction (negative = zoom in)
-    const ZOOM_STEP = 1.125;
-    const factor = e.deltaY < 0 ? ZOOM_STEP : (1 / ZOOM_STEP);
-    const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale * factor));
-
-    // if no change -> skip
-    if (Math.abs(newScale - scale) < 1e-6) return;
-
-    // apply scale (this changes svg.clientWidth / clientHeight)
-    const oldScale = scale;
-    applyScale(newScale);
-
-    // after scaling, keep the point under the mouse stable:
-    // contentXAfter = contentX * (newScale/oldScale)
-    const ratio = newScale / oldScale;
-    const contentXAfter = contentX * ratio;
-    const contentYAfter = contentY * ratio;
-
-    // set new scroll to keep pointer on same map point
-    el.scrollLeft = contentXAfter - mouseOffsetX;
-    el.scrollTop  = contentYAfter - mouseOffsetY;
-  }, {passive: false});
-}
-
-// optional keyboard zoom for convenience
-function enableKeyboardZoom(el) {
-  window.addEventListener('keydown', (e) => {
-    if (e.key === '+' || e.key === '=' ) {
-      applyScale(scale * 1.125);
-      // keep centered where currently scrolled
-    } else if (e.key === '-' ) {
-      applyScale(scale / 1.125);
-    } else if (e.key === '0') {
-      // reset to initial fit/center
-      const fitScaleX = container.clientWidth / naturalWidth;
-      const fitScaleY = container.clientHeight / naturalHeight;
-      const initialScale = Math.max(fitScaleX, fitScaleY) * 0.9;
-      applyScale(Math.max(initialScale, 1));
-      centerSVG();
-    }
+  container.addEventListener('touchend', () => {
+    isDragging = false;
+    touchStart = null;
   });
 }
 
-// initialize on load
+// Wheel zoom centered under mouse pointer
+function enableWheelZoom() {
+  container.addEventListener('wheel', (e) => {
+    // prefer zooming always; prevent page scroll
+    e.preventDefault();
+
+    // recalc defaultScale in case container size changed
+    computeDefaultScale();
+    const oldScale = scale;
+
+    // pointer position relative to container
+    const rect = container.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // map coordinate (in SVG pixel space) under pointer before zoom:
+    // mapX = (mouseX - tx) / oldScale
+    const mapX = (mouseX - tx) / oldScale;
+    const mapY = (mouseY - ty) / oldScale;
+
+    // choose zoom factor
+    const ZOOM_STEP = 1.125;
+    const factor = e.deltaY < 0 ? ZOOM_STEP : (1 / ZOOM_STEP);
+    // clamp new scale so it cannot go below defaultScale
+    const proposedScale = oldScale * factor;
+    const maxScale = defaultScale * MAX_SCALE_MULTIPLIER;
+    const newScale = Math.max(defaultScale, Math.min(maxScale, proposedScale));
+    if (Math.abs(newScale - oldScale) < 1e-6) return;
+
+    // update scale
+    scale = newScale;
+
+    // compute new translate so mapX,mapY stays under the same mouse pixel
+    // mouseX = tx' + mapX * newScale  => tx' = mouseX - mapX * newScale
+    tx = mouseX - mapX * newScale;
+    ty = mouseY - mapY * newScale;
+
+    applyTransform(false);
+  }, {passive: false});
+}
+
+// handle resize: keep the same visual center as best we can
+function onResize() {
+  // compute previous center point in map coordinates, then reapply defaultScale clamp
+  if (!svgEl) return;
+
+  // container center pos in pixels
+  const cRect = container.getBoundingClientRect();
+  const cx = cRect.width / 2;
+  const cy = cRect.height / 2;
+
+  // map coord under center before resize
+  const mapCenterX = (cx - tx) / scale;
+  const mapCenterY = (cy - ty) / scale;
+
+  // recompute default scale (which might've changed)
+  computeDefaultScale();
+
+  // ensure scale not below defaultScale
+  if (scale < defaultScale) scale = defaultScale;
+
+  // if scale is below new default, clamp and set to default
+  if (scale < defaultScale) scale = defaultScale;
+
+  // Re-center so that mapCenter remains at viewport center
+  tx = cx - mapCenterX * scale;
+  ty = cy - mapCenterY * scale;
+
+  // if we're at initial (no pan) then center exactly
+  applyTransform(false);
+}
+
+// start
 init();
