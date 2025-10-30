@@ -4,28 +4,30 @@ html, body {
   width: 100%;
   margin: 0;
   padding: 0;
-  background: #eef2f5;
-  overflow: hidden; /* keep the page itself from scrolling */
+  background: #eef2f5;        /* page background (light gray) */
+  overflow: hidden;           /* page itself shouldn't scroll */
   -webkit-font-smoothing: antialiased;
 }
 
-/* map container is the only scrollable area */
+/* this is the visible map area */
 #map-container {
   width: 100vw;
   height: 100vh;
-  overflow: auto;            /* enable scrolling */
-  cursor: grab;              /* show grab cursor for dragging */
-  touch-action: none;        /* let JS handle touch pan */
+  overflow: auto;             /* allow scrollbars when content is larger */
+  cursor: grab;               /* show grab cursor for dragging */
+  touch-action: none;         /* allow JS to handle touch pan */
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
+  background: #5fb0ff;        /* water color behind islands (customize) */
 }
 
-/* Make any inline SVG display as a block (no extra whitespace) */
+/* inline SVG should be treated as content */
 #map-container svg {
   display: block;
   user-select: none;
   -webkit-user-drag: none;
   image-rendering: optimizeSpeed;
+  background: transparent !important; /* force svg background transparent */
 }
 
 /* When grabbing, show grabbing cursor */
