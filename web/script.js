@@ -561,7 +561,7 @@ function aircraftRenderLoop() {
 
     // apply transform: translate(sx,sy) rotate(heading) scale to counter zoom
     // Fix heading: subtract 90 degrees to correct the orientation
-    const h = (entry.state.heading || 0) - 90;
+    const h = -((entry.state.heading || 0) + 90);
     entry.g.setAttribute('transform', `translate(${coords.sx}, ${coords.sy}) rotate(${h}) scale(${iconScale})`);
   });
 
