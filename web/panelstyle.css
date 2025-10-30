@@ -1,0 +1,97 @@
+/* Aircraft Details Panel Styles */
+/* Easy customization guide at the bottom! */
+
+/* Main panel container */
+#aircraft-panel {
+    position: fixed;
+    left: -20%;
+    top: 0;
+    width: 20%;
+    height: 100vh;
+    background-color: rgb(26, 26, 26);
+    border: 3px solid rgb(255, 170, 0);
+    border-left: none;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 10000;
+    transition: left 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+    overflow-y: auto;
+    font-family: 'Press Start 2P', cursive;
+    color: white;
+}
+
+/* Panel when open */
+#aircraft-panel.open {
+    left: 0;
+}
+
+/* Callsign header */
+#aircraft-callsign {
+    font-size: 16px;
+    margin-bottom: 20px;
+    text-align: left;
+    word-break: break-word;
+}
+
+#aircraft-pilot {
+    font-size: 8px;
+    margin-bottom: 20px;
+    text-align: left;
+    word-break: break-word;
+}
+
+/* Image container (16:9 aspect ratio) */
+#aircraft-image-container {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: rgb(40, 40, 40);
+    border: 2px solid rgb(255, 170, 0);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* Image inside container */
+#aircraft-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Placeholder text for no image */
+#aircraft-image-container div {
+    font-size: 10px;
+    color: rgb(100, 100, 100);
+}
+
+/* Aircraft type */
+#aircraft-type {
+    font-size: 12px;
+    text-align: left;
+    word-break: break-word;
+}
+
+/* Close button (X) */
+#aircraft-panel-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: rgb(255, 170, 0);
+    font-size: 24px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    padding: 5px 10px;
+    line-height: 1;
+}
+
+#aircraft-panel-close:hover {
+    color: white;
+}
+

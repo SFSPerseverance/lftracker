@@ -13,59 +13,22 @@ function createAircraftPanel() {
   // Create panel container
   panel = document.createElement('div');
   panel.id = 'aircraft-panel';
-  
-  // Panel styles
-  Object.assign(panel.style, {
-    position: 'fixed',
-    left: '-20%',
-    top: '0',
-    width: '20%',
-    height: '100vh',
-    backgroundColor: 'rgb(26, 26, 26)',
-    border: '3px solid rgb(255, 170, 0)',
-    borderLeft: 'none',
-    borderTopRightRadius: '12px',
-    borderBottomRightRadius: '12px',
-    padding: '20px',
-    boxSizing: 'border-box',
-    zIndex: 10000,
-    transition: 'left 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)',
-    overflowY: 'auto',
-    fontFamily: '"Press Start 2P", cursive',
-    color: 'white'
-  });
 
   // Callsign header
   const callsignHeader = document.createElement('div');
   callsignHeader.id = 'aircraft-callsign';
-  Object.assign(callsignHeader.style, {
-    fontSize: '16px',
-    marginBottom: '20px',
-    textAlign: 'left',
-    wordBreak: 'break-word'
-  });
   panel.appendChild(callsignHeader);
+
+  const pilotHeader = document.createElement('div');
+  pilotHeader.id = 'aircraft-pilot';
+  panel.appendChild(pilotHeader);
 
   // Image container (16:9 aspect ratio)
   const imageContainer = document.createElement('div');
   imageContainer.id = 'aircraft-image-container';
-  Object.assign(imageContainer.style, {
-    width: '100%',
-    aspectRatio: '16 / 9',
-    backgroundColor: 'rgb(40, 40, 40)',
-    border: '2px solid rgb(255, 170, 0)',
-    borderRadius: '8px',
-    marginBottom: '20px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden'
-  });
 
   const placeholderText = document.createElement('div');
   placeholderText.textContent = 'No Image';
-  placeholderText.style.fontSize = '10px';
-  placeholderText.style.color = 'rgb(100, 100, 100)';
   imageContainer.appendChild(placeholderText);
 
   panel.appendChild(imageContainer);
@@ -73,36 +36,13 @@ function createAircraftPanel() {
   // Aircraft type
   const aircraftType = document.createElement('div');
   aircraftType.id = 'aircraft-type';
-  Object.assign(aircraftType.style, {
-    fontSize: '12px',
-    textAlign: 'left',
-    wordBreak: 'break-word'
-  });
   panel.appendChild(aircraftType);
 
   // Close button (X in top right of panel)
   const closeButton = document.createElement('button');
+  closeButton.id = 'aircraft-panel-close';
   closeButton.innerHTML = '&times;';
-  Object.assign(closeButton.style, {
-    position: 'absolute',
-    top: '10px',
-    right: '10px',
-    background: 'none',
-    border: 'none',
-    color: 'rgb(255, 170, 0)',
-    fontSize: '24px',
-    cursor: 'pointer',
-    fontFamily: 'Arial, sans-serif',
-    padding: '5px 10px',
-    lineHeight: '1'
-  });
   closeButton.addEventListener('click', closeAircraftPanel);
-  closeButton.addEventListener('mouseenter', () => {
-    closeButton.style.color = 'white';
-  });
-  closeButton.addEventListener('mouseleave', () => {
-    closeButton.style.color = 'rgb(255, 170, 0)';
-  });
   panel.appendChild(closeButton);
 
   document.body.appendChild(panel);
@@ -119,11 +59,41 @@ function createAircraftPanel() {
   return panel;
 }
 
+async function getRobloxUsername(userId) {
+  // Check cache first
+  if (usernameCache.has(userId)) {
+    return usernameCache.get(userId);
+  }
+  
+  try {
+    const response = await fetch(`https://users.roblox.com/v1/users/${userId}`);
+    if (!response.ok) {
+      throw new Error('User not found');
+    }
+    const data = await response.json();
+    const username = data.name;
+    
+    // Cache the result
+    usernameCache.set(userId, username);
+    return username;
+  } catch (error) {
+    console.error('Error fetching Roblox username:', error);
+    return null;
+  }
+}
+
+// Function to extract userId from aircraft.id
+function extractUserId(aircraftId) {
+  if (!aircraftId) return null;
+  const parts = aircraftId.split('&@');
+  return parts[0] || null;
+}
+
 // Show aircraft details in the panel
 window.showAircraftDetails = function(aircraft) {
   window.selectedAircraft = aircraft;
 
-   const aircraftId = aircraft.id || aircraft.callsign;
+  const aircraftId = aircraft.id || aircraft.callsign;
   const marker = document.querySelector(`[data-aircraft-id="${aircraftId}"]`);
   if (marker) {
     const icon = marker.querySelector('path');
@@ -136,7 +106,12 @@ window.showAircraftDetails = function(aircraft) {
   
   // Update callsign
   const callsignEl = document.getElementById('aircraft-callsign');
-  callsignEl.textContent = aircraft.callsign || aircraft.id || 'Unknown';
+  callsignEl.textContent = aircraft.callsign || 'Unknown';
+
+  const pilotEl = document.getElementById('aircraft-pilot');
+  const pId = extractUserId(aircraft.id);
+  const pUsername = getRobloxUsername(pId);
+  pilotEl.textContent = pUsername || 'Unknown';
   
   // Update image (placeholder for now)
   const imageContainer = document.getElementById('aircraft-image-container');
@@ -146,18 +121,11 @@ window.showAircraftDetails = function(aircraft) {
   if (aircraft.imageUrl) {
     const img = document.createElement('img');
     img.src = aircraft.imageUrl;
-    Object.assign(img.style, {
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover'
-    });
     imageContainer.appendChild(img);
   } else {
     // Show placeholder
     const placeholderText = document.createElement('div');
     placeholderText.textContent = 'No Image';
-    placeholderText.style.fontSize = '10px';
-    placeholderText.style.color = 'rgb(100, 100, 100)';
     imageContainer.appendChild(placeholderText);
   }
   
@@ -175,24 +143,18 @@ window.closeAircraftPanel = function() {
   if (panel) {
     panel.style.left = '-20%';
   }
-  window.selectedAircraft = null;
-};
-
-// Close panel when clicking outside of it
-document.addEventListener('click', (e) => {
-  const panel = document.getElementById('aircraft-panel');
-  if (panel && panel.style.left === '0px') {
-    // Check if click is outside panel
-    const rect = panel.getBoundingClientRect();
-    if (e.clientX > rect.right || e.clientX < rect.left || 
-        e.clientY < rect.top || e.clientY > rect.bottom) {
-      // Don't close if clicking on an aircraft marker
-      if (!e.target.closest('[data-aircraft-id]')) {
-        closeAircraftPanel();
+  if (window.selectedAircraft) {
+    const aircraftId = window.selectedAircraft.id || window.selectedAircraft.callsign;
+    const marker = document.querySelector(`[data-aircraft-id="${aircraftId}"]`);
+    if (marker) {
+      const icon = marker.querySelector('path');
+      if (icon) {
+        icon.setAttribute('fill', 'rgb(255, 170, 0)');
       }
     }
   }
-});
+  window.selectedAircraft = null;
+};
 
 // Close panel on ESC key
 document.addEventListener('keydown', (e) => {
@@ -200,5 +162,3 @@ document.addEventListener('keydown', (e) => {
     closeAircraftPanel();
   }
 });
-
-console.log('Aircraft panel script loaded');
