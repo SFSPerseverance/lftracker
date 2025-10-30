@@ -10,7 +10,7 @@
 // - warns if raster <image> elements are present (they will pixelate)
 
 const container = document.getElementById('map-container');
-const svgPath = 'assets/legacyflightmap_light.svg';
+const svgPath = 'assets/legacyflightmapold_light.svg';
 
 let svgEl = null;
 let origVB = null;     // {x,y,w,h} original viewBox
