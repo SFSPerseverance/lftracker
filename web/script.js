@@ -8,7 +8,7 @@
 // - Keeps SVG vector quality (no pixelation)
 
 const container = document.getElementById('map-container');
-const svgPath = 'web/legacyflightmap_light.svg';
+const svgPath = 'assets/legacyflightmap_light.svg';
 
 let svgEl = null;
 let naturalWidth = 1000, naturalHeight = 1000;
