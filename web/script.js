@@ -97,6 +97,7 @@ async function loadSVGInline() {
         // setup interactions
         enableWheelZoom();
         enableDragPan();
+        enablePinchZoom(); // ADD THIS LINE
         window.addEventListener('resize', onResize);
 
         // ensure initial centering (no pan possible at default)
@@ -305,6 +306,51 @@ function enableWheelZoom() {
         // apply smooth transition for wheel zoom
         updateViewBox(true);
     }, { passive: false });
+}
+
+function enablePinchZoom() {
+  let lastDist = null;
+  let lastCenter = null;
+
+  container.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      lastDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      lastCenter = {
+        x: (t1.clientX + t2.clientX) / 2,
+        y: (t1.clientY + t2.clientY) / 2
+      };
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  container.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 2 && lastDist && lastCenter) {
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const newDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      const newCenter = {
+        x: (t1.clientX + t2.clientX) / 2,
+        y: (t1.clientY + t2.clientY) / 2
+      };
+
+      const factor = newDist / lastDist;
+      zoomAt(newCenter.x, newCenter.y, factor);
+      updateViewBox(true);
+
+      lastDist = newDist;
+      lastCenter = newCenter;
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  container.addEventListener('touchend', (e) => {
+    if (e.touches.length < 2) {
+      lastDist = null;
+      lastCenter = null;
+    }
+  });
 }
 
 // on resize: keep center point stable by keeping same center svg coordinate
