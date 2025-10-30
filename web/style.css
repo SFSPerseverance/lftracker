@@ -17,7 +17,7 @@ html, body {
   cursor: grab;
   touch-action: none;          /* JS handles touch pan/zoom */
   box-sizing: border-box;
-  background: #5fb0ff;         /* ocean color behind islands */
+  background: #7C96A7;         /* ocean color behind islands */
   position: relative;
 }
 
