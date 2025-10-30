@@ -154,7 +154,7 @@ window.showAircraftDetails = function(aircraft) {
   
   // Update aircraft type
   const typeEl = document.getElementById('aircraft-type');
-  typeEl.textContent = aircraft.aircraftType || aircraft.type || 'Unknown Type';
+  typeEl.textContent = aircraft.aircraft_type || aircraft.type || 'Unknown Type';
   
   // Slide panel in
   panel.style.left = '0';
