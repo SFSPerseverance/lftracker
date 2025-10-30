@@ -1,36 +1,36 @@
-/* Full viewport container that scrolls when content is bigger */
+/* full viewport; page doesn't scroll, only the map container does */
 html, body {
   height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
-  background: #eef2f5;        /* page background (light gray) */
-  overflow: hidden;           /* page itself shouldn't scroll */
+  background: #eef2f5;
+  overflow: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
-/* this is the visible map area */
 #map-container {
   width: 100vw;
   height: 100vh;
-  overflow: auto;             /* allow scrollbars when content is larger */
-  cursor: grab;               /* show grab cursor for dragging */
-  touch-action: none;         /* allow JS to handle touch pan */
+  overflow: auto;             /* allow scrollbars when SVG is bigger */
+  cursor: grab;
+  touch-action: none;         /* let JS handle touch */
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
-  background: #5fb0ff;        /* water color behind islands (customize) */
+  background: #5fb0ff;        /* ocean color behind islands */
 }
 
-/* inline SVG should be treated as content */
+/* Inline SVG content */
 #map-container svg {
   display: block;
   user-select: none;
   -webkit-user-drag: none;
   image-rendering: optimizeSpeed;
-  background: transparent !important; /* force svg background transparent */
+  background: transparent !important;
+  transform-origin: 0 0;      /* origin at top-left for scaling math */
 }
 
-/* When grabbing, show grabbing cursor */
+/* grabbing cursor while panning */
 #map-container.grabbing {
   cursor: grabbing;
 }
