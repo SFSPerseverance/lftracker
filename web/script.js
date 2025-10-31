@@ -40,14 +40,14 @@ const aircraftIcons = {
 };
 
 const iconFiles = {
-  fighter: '/lftracker/icons/fighter.png',
-  narrowbody: '/lftracker/icons/narrowbody.png',
-  narrowbody_tailengine: '/lftracker/icons/tailengine.png',
-  threeengine: '/lftracker/icons/three_engine.png',
-  singleprop: '/lftracker/icons/singleprop.png',
-  businessjet: '/lftracker/icons/business.png',
-  fourengine: '/lftracker/icons/four_engine.png',
-  sevenfiveseven: '/lftracker/icons/b757.png'
+  fighter: 'icons/fighter.svg',
+  narrowbody: 'icons/narrowbody.svg',
+  narrowbody_tailengine: '/icons/tailengine.svg',
+  threeengine: 'icons/three_engine.svg',
+  singleprop: 'icons/singleprop.svg',
+  businessjet: 'icons/business.svg',
+  fourengine: 'icons/fourengine.svg',
+  sevenfiveseven: 'icons/b757.svg'
 };
 
 function getAircraftIcon(category) {
@@ -692,12 +692,8 @@ function upsertSVGPlane(aircraft) {
         const category = getAircraftCategory(aircraft.icao);
         const pathData = getAircraftIcon(category);
 
-        const icon = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-        icon.setAttribute('href', pathData);
-        icon.setAttribute('x', -12);
-        icon.setAttribute('y', -12);
-        icon.setAttribute('width', 24);
-        icon.setAttribute('height', 24);
+        const icon = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        icon.setAttribute('d', pathData);
         icon.setAttribute('fill', 'rgb(255, 170, 0)');
         icon.setAttribute('stroke', '#222');
         icon.setAttribute('stroke-width', '0.8');
