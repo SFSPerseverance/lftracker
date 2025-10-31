@@ -706,7 +706,7 @@ async function upsertSVGPlane(aircraft) {
         icon.setAttribute('d', pathData);
         icon.setAttribute('fill', 'rgb(255, 170, 0)');
         icon.setAttribute('stroke', '#222');
-        icon.setAttribute('stroke-width', '0.8');
+        icon.setAttribute('stroke-width', '40');
 
         // label (hidden by default)
         const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
