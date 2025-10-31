@@ -29,25 +29,25 @@ const RENDER_WS_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://') + 'h
 let affine = null; // world -> svg affine matrix (computed from anchors)
 
 const aircraftIcons = {
-  fighter: ['A10'],
-  narrowbody: ['B73'],
-  narrowbody_tailengine: ['BA11'],
-  sevenfiveseven: ['B75'],
-  fourengine: ['B74'],
-  threeengine: ['L101'],
-  singleprop: ['TBM7'],
-  businessjet: ['CL60'],
+    fighter: ['A10'],
+    narrowbody: ['B73'],
+    narrowbody_tailengine: ['BA11'],
+    sevenfiveseven: ['B75'],
+    fourengine: ['B74'],
+    threeengine: ['L101'],
+    singleprop: ['TBM7'],
+    businessjet: ['CL60'],
 };
 
 const iconFiles = {
-  fighter: 'icons/fighter.svg',
-  narrowbody: 'icons/narrowbody.svg',
-  narrowbody_tailengine: '/icons/tailengine.svg',
-  threeengine: 'icons/three_engine.svg',
-  singleprop: 'icons/singleprop.svg',
-  businessjet: 'icons/business.svg',
-  fourengine: 'icons/fourengine.svg',
-  sevenfiveseven: 'icons/b757.svg'
+    fighter: 'icons/fighter.svg',
+    narrowbody: 'icons/narrowbody.svg',
+    narrowbody_tailengine: '/icons/tailengine.svg',
+    threeengine: 'icons/three_engine.svg',
+    singleprop: 'icons/singleprop.svg',
+    businessjet: 'icons/business.svg',
+    fourengine: 'icons/fourengine.svg',
+    sevenfiveseven: 'icons/b757.svg'
 };
 
 function getAircraftIcon(category) {
@@ -56,23 +56,23 @@ function getAircraftIcon(category) {
 }
 
 function getAircraftCategory(icaoCode) {
-  for (const [category, prefixes] of Object.entries(aircraftIcons)) {
-    if (prefixes.some(prefix => icaoCode.startsWith(prefix))) {
-      return category;
+    for (const [category, prefixes] of Object.entries(aircraftIcons)) {
+        if (prefixes.some(prefix => icaoCode.startsWith(prefix))) {
+            return category;
+        }
     }
-  }
-  return 'default';
+    return 'default';
 }
 
 function setAircraftInQuery(id) {
-  const url = new URL(location.href);
-  url.searchParams.set('aircraft', id);
-  history.pushState({ aircraft: id }, '', url.toString());
+    const url = new URL(location.href);
+    url.searchParams.set('aircraft', id);
+    history.pushState({ aircraft: id }, '', url.toString());
 }
 
 function getAircraftFromQuery() {
-  const params = new URLSearchParams(location.search);
-  return params.get('aircraft');
+    const params = new URLSearchParams(location.search);
+    return params.get('aircraft');
 }
 
 // optional raster-warning overlay
@@ -356,94 +356,94 @@ function enableWheelZoom() {
 }
 
 function enableTouchControls() {
-  let touchLast = null;
-  let lastDist = null;
-  let lastCenter = null;
+    let touchLast = null;
+    let lastDist = null;
+    let lastCenter = null;
 
-  container.addEventListener('touchstart', (ev) => {
-    if (ev.touches.length === 1) {
-      // Single touch - pan
-      if (!isPannable()) return;
-      const t = ev.touches[0];
-      touchLast = { x: t.clientX, y: t.clientY };
-      ev.preventDefault();
-    } else if (ev.touches.length === 2) {
-      // Two fingers - pinch zoom
-      touchLast = null; // cancel any pan
-      const t1 = ev.touches[0];
-      const t2 = ev.touches[1];
-      lastDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-      lastCenter = {
-        x: (t1.clientX + t2.clientX) / 2,
-        y: (t1.clientY + t2.clientY) / 2
-      };
-      ev.preventDefault();
-    }
-  }, {passive: false});
+    container.addEventListener('touchstart', (ev) => {
+        if (ev.touches.length === 1) {
+            // Single touch - pan
+            if (!isPannable()) return;
+            const t = ev.touches[0];
+            touchLast = { x: t.clientX, y: t.clientY };
+            ev.preventDefault();
+        } else if (ev.touches.length === 2) {
+            // Two fingers - pinch zoom
+            touchLast = null; // cancel any pan
+            const t1 = ev.touches[0];
+            const t2 = ev.touches[1];
+            lastDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+            lastCenter = {
+                x: (t1.clientX + t2.clientX) / 2,
+                y: (t1.clientY + t2.clientY) / 2
+            };
+            ev.preventDefault();
+        }
+    }, { passive: false });
 
-  container.addEventListener('touchmove', (ev) => {
-    if (ev.touches.length === 1 && touchLast) {
-      // Single touch - pan
-      const t = ev.touches[0];
-      const dx = t.clientX - touchLast.x;
-      const dy = t.clientY - touchLast.y;
-      touchLast = { x: t.clientX, y: t.clientY };
+    container.addEventListener('touchmove', (ev) => {
+        if (ev.touches.length === 1 && touchLast) {
+            // Single touch - pan
+            const t = ev.touches[0];
+            const dx = t.clientX - touchLast.x;
+            const dy = t.clientY - touchLast.y;
+            touchLast = { x: t.clientX, y: t.clientY };
 
-      const rect = container.getBoundingClientRect();
-      const dxSvg = dx * (curVB.w / rect.width);
-      const dySvg = dy * (curVB.h / rect.height);
+            const rect = container.getBoundingClientRect();
+            const dxSvg = dx * (curVB.w / rect.width);
+            const dySvg = dy * (curVB.h / rect.height);
 
-      let newX = curVB.x - dxSvg;
-      let newY = curVB.y - dySvg;
+            let newX = curVB.x - dxSvg;
+            let newY = curVB.y - dySvg;
 
-      newX = clamp(newX, origVB.x, origVB.x + origVB.w - curVB.w);
-      newY = clamp(newY, origVB.y, origVB.y + origVB.h - curVB.h);
+            newX = clamp(newX, origVB.x, origVB.x + origVB.w - curVB.w);
+            newY = clamp(newY, origVB.y, origVB.y + origVB.h - curVB.h);
 
-      curVB.x = newX;
-      curVB.y = newY;
-      updateViewBox();
-      ev.preventDefault();
-    } else if (ev.touches.length === 2 && lastDist && lastCenter) {
-      // Two fingers - pinch zoom
-      const t1 = ev.touches[0];
-      const t2 = ev.touches[1];
-      const newDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-      const newCenter = {
-        x: (t1.clientX + t2.clientX) / 2,
-        y: (t1.clientY + t2.clientY) / 2
-      };
+            curVB.x = newX;
+            curVB.y = newY;
+            updateViewBox();
+            ev.preventDefault();
+        } else if (ev.touches.length === 2 && lastDist && lastCenter) {
+            // Two fingers - pinch zoom
+            const t1 = ev.touches[0];
+            const t2 = ev.touches[1];
+            const newDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+            const newCenter = {
+                x: (t1.clientX + t2.clientX) / 2,
+                y: (t1.clientY + t2.clientY) / 2
+            };
 
-      const factor = newDist / lastDist;
-      zoomAt(newCenter.x, newCenter.y, factor);
-      updateViewBox(true);
+            const factor = newDist / lastDist;
+            zoomAt(newCenter.x, newCenter.y, factor);
+            updateViewBox(true);
 
-      lastDist = newDist;
-      lastCenter = newCenter;
-      ev.preventDefault();
-    }
-  }, {passive: false});
+            lastDist = newDist;
+            lastCenter = newCenter;
+            ev.preventDefault();
+        }
+    }, { passive: false });
 
-  container.addEventListener('touchend', (ev) => {
-    if (ev.touches.length === 0) {
-      // All fingers lifted
-      touchLast = null;
-      lastDist = null;
-      lastCenter = null;
-    } else if (ev.touches.length === 1) {
-      // One finger remaining - reset pinch but could continue pan
-      lastDist = null;
-      lastCenter = null;
-      // Reset touchLast for the remaining finger
-      const t = ev.touches[0];
-      touchLast = { x: t.clientX, y: t.clientY };
-    }
-  });
+    container.addEventListener('touchend', (ev) => {
+        if (ev.touches.length === 0) {
+            // All fingers lifted
+            touchLast = null;
+            lastDist = null;
+            lastCenter = null;
+        } else if (ev.touches.length === 1) {
+            // One finger remaining - reset pinch but could continue pan
+            lastDist = null;
+            lastCenter = null;
+            // Reset touchLast for the remaining finger
+            const t = ev.touches[0];
+            touchLast = { x: t.clientX, y: t.clientY };
+        }
+    });
 
-  container.addEventListener('touchcancel', () => {
-    touchLast = null;
-    lastDist = null;
-    lastCenter = null;
-  });
+    container.addEventListener('touchcancel', () => {
+        touchLast = null;
+        lastDist = null;
+        lastCenter = null;
+    });
 }
 
 // on resize: keep center point stable by keeping same center svg coordinate
@@ -587,7 +587,7 @@ function worldToSvg(wx, wz, latLonFallback = null) {
         return { sx, sy };
     }
     return null;
-    
+
 }
 
 window.aircraftMap = window.aircraftMap || new Map(); // id -> aircraft object (source of truth)
@@ -595,66 +595,66 @@ window.aircraftList = window.aircraftList || [];     // array view (kept in sync
 
 // helper: add or merge aircraft into store and update array view
 function addOrUpdateAircraftInStore(incoming) {
-  if (!incoming) return null;
-  const id = String(incoming.id || incoming.callsign || '').trim();
-  if (!id) return null;
+    if (!incoming) return null;
+    const id = String(incoming.id || incoming.callsign || '').trim();
+    if (!id) return null;
 
-  const existing = window.aircraftMap.get(id) || {};
-  // merge with incoming (incoming wins)
-  const merged = Object.assign({}, existing, incoming, { id });
-  // Ensure numeric fields are numbers if strings arrive (optional safety)
-  if (merged.latitude != null) merged.latitude = Number(merged.latitude);
-  if (merged.longitude != null) merged.longitude = Number(merged.longitude);
-  if (merged.heading != null) merged.heading = Number(merged.heading);
-  // store
-  window.aircraftMap.set(id, merged);
-  // keep list view in sync
-  window.aircraftList = Array.from(window.aircraftMap.values());
-  return merged;
+    const existing = window.aircraftMap.get(id) || {};
+    // merge with incoming (incoming wins)
+    const merged = Object.assign({}, existing, incoming, { id });
+    // Ensure numeric fields are numbers if strings arrive (optional safety)
+    if (merged.latitude != null) merged.latitude = Number(merged.latitude);
+    if (merged.longitude != null) merged.longitude = Number(merged.longitude);
+    if (merged.heading != null) merged.heading = Number(merged.heading);
+    // store
+    window.aircraftMap.set(id, merged);
+    // keep list view in sync
+    window.aircraftList = Array.from(window.aircraftMap.values());
+    return merged;
 }
 
 function findAircraftById(id) {
-  if (!id) return null;
-  const sid = String(id);
-  if (window.aircraftMap && window.aircraftMap instanceof Map) {
-    return window.aircraftMap.get(sid) || null;
-  }
-  if (window.aircraftList && Array.isArray(window.aircraftList)) {
-    return window.aircraftList.find(a => String(a.id) === sid) || null;
-  }
-  return null;
+    if (!id) return null;
+    const sid = String(id);
+    if (window.aircraftMap && window.aircraftMap instanceof Map) {
+        return window.aircraftMap.get(sid) || null;
+    }
+    if (window.aircraftList && Array.isArray(window.aircraftList)) {
+        return window.aircraftList.find(a => String(a.id) === sid) || null;
+    }
+    return null;
 }
 
 // Wait until aircraft exists (poll) — cancels after timeout ms
 function waitForAircraft(id, timeout = 5000, interval = 200) {
-  return new Promise((resolve, reject) => {
-    const start = Date.now();
-    const tryFind = () => {
-      const a = findAircraftById(id);
-      if (a) return resolve(a);
-      if (Date.now() - start >= timeout) return reject(new Error('timeout'));
-      setTimeout(tryFind, interval);
-    };
-    tryFind();
-  });
+    return new Promise((resolve, reject) => {
+        const start = Date.now();
+        const tryFind = () => {
+            const a = findAircraftById(id);
+            if (a) return resolve(a);
+            if (Date.now() - start >= timeout) return reject(new Error('timeout'));
+            setTimeout(tryFind, interval);
+        };
+        tryFind();
+    });
 }
 
 async function focusAircraftFromURL() {
-  const id = getAircraftFromQuery();
-  if (!id) return;
-  // try immediate find
-  const a = findAircraftById(id);
-  if (a) {
-    showAircraftDetails(a);
-    return;
-  }
-  // otherwise wait for data to arrive (e.g. via websocket)
-  try {
-    const awaited = await waitForAircraft(id, 10000, 200); // 10s max
-    showAircraftDetails(awaited);
-  } catch (e) {
-    console.warn('Could not find aircraft from URL:', id);
-  }
+    const id = getAircraftFromQuery();
+    if (!id) return;
+    // try immediate find
+    const a = findAircraftById(id);
+    if (a) {
+        showAircraftDetails(a);
+        return;
+    }
+    // otherwise wait for data to arrive (e.g. via websocket)
+    try {
+        const awaited = await waitForAircraft(id, 10000, 200); // 10s max
+        showAircraftDetails(awaited);
+    } catch (e) {
+        console.warn('Could not find aircraft from URL:', id);
+    }
 }
 
 // run on initial load
@@ -662,21 +662,21 @@ focusAircraftFromURL();
 
 // react to hash changes or back/forward
 window.addEventListener('hashchange', () => {
-  focusAircraftFromURL();
+    focusAircraftFromURL();
 });
 
 // if using pushState / query parameter approach, listen for popstate
 window.addEventListener('popstate', (ev) => {
-  focusAircraftFromURL();
+    focusAircraftFromURL();
 });
 
 async function getPathFromSVG(url) {
-  const res = await fetch(url);
-  const text = await res.text();
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(text, "image/svg+xml");
-  const path = doc.querySelector('path');
-  return path ? path.getAttribute('d') : '';
+    const res = await fetch(url);
+    const text = await res.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(text, "image/svg+xml");
+    const path = doc.querySelector('path');
+    return path ? path.getAttribute('d') : '';
 }
 
 // create or update an SVG plane marker (idempotent)
@@ -702,11 +702,10 @@ async function upsertSVGPlane(aircraft) {
         const pathData = await getPathFromSVG(getAircraftIcon(category));
 
         const icon = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        icon.setAttribute('transform', 'translate(-50 -50)'); // ONLY if your SVG bounds are 0-100
         icon.setAttribute('d', pathData);
         icon.setAttribute('fill', 'rgb(255, 170, 0)');
         icon.setAttribute('stroke', '#222');
-        icon.setAttribute('stroke-width', '24');
+        icon.setAttribute('stroke-width', '12');
 
         // label (hidden by default)
         const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -792,13 +791,13 @@ function aircraftRenderLoop() {
         const rect = container.getBoundingClientRect();
         const cssPixelToSvgUnit = curVB.w / rect.width; // how many SVG units = 1 CSS pixel
         const targetSvgSize = 24 * cssPixelToSvgUnit; // 24 CSS pixels in SVG units
-        
+
         // Assuming icon path is designed for ~100 unit viewBox, scale to targetSvgSize
-        const iconScale = targetSvgSize / 512; 
+        const iconScale = targetSvgSize / 512;
 
         // apply transform: translate(sx,sy) rotate(heading) scale(iconScale)
         const h = -(entry.state.heading || 0);
-        entry.g.setAttribute('transform', `translate(${coords.sx}, ${coords.sy}) rotate(${h}) scale(${iconScale})`);
+entry.g.setAttribute('transform', `translate(${coords.sx}, ${coords.sy}) scale(${iconScale}) rotate(${h}) translate(-256, -256)`);
     });
 
     // occasionally cleanup
