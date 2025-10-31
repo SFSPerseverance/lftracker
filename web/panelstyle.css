@@ -86,7 +86,7 @@
     background: linear-gradient(90deg, rgb(255,170,0) 0%, rgb(156, 112, 0) 15%, rgb(156, 112, 0) 85%,rgb(255,170,0) 100%);
     color: white;
     padding: 4px 8px;
-    border-radius: 25%;
+    border-radius: 4px;
     border: 2px solid rgb(255,170,0);
     font-weight: bold;
     font-size: 10px;
