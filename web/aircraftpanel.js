@@ -162,7 +162,7 @@ window.showAircraftDetails = async function (aircraft) {
   `;
 
   airlineEl.innerHTML = `
-    <span class="airframe-text"> | ${prefix}</span>
+    <span class="airframe-text">${prefix}</span>
     <span class="icao-badge">${airline}</span>
   `;
 
