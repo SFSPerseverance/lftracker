@@ -702,7 +702,6 @@ async function upsertSVGPlane(aircraft) {
         const pathData = await getPathFromSVG(getAircraftIcon(category));
 
         const icon = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        g.setAttribute('transform', `translate(${screenX},${screenY}) rotate(${aircraft.heading}) scale(0.02)`);
         icon.setAttribute('transform', 'translate(-50 -50)'); // ONLY if your SVG bounds are 0-100
         icon.setAttribute('d', pathData);
         icon.setAttribute('fill', 'rgb(255, 170, 0)');
@@ -790,11 +789,15 @@ function aircraftRenderLoop() {
 
         // Calculate scale factor to keep icon constant size
         // Current zoom scale relative to original viewBox
-        const iconScale = 1 / currentScale;
+        const rect = container.getBoundingClientRect();
+        const cssPixelToSvgUnit = curVB.w / rect.width; // how many SVG units = 1 CSS pixel
+        const targetSvgSize = 24 * cssPixelToSvgUnit; // 24 CSS pixels in SVG units
+        
+        // Assuming icon path is designed for ~100 unit viewBox, scale to targetSvgSize
+        const iconScale = targetSvgSize / 512; 
 
-        // apply transform: translate(sx,sy) rotate(heading) scale to counter zoom
-        // Fix heading: subtract 90 degrees to correct the orientation
-        const h = -((entry.state.heading || 0) + 0);
+        // apply transform: translate(sx,sy) rotate(heading) scale(iconScale)
+        const h = -(entry.state.heading || 0);
         entry.g.setAttribute('transform', `translate(${coords.sx}, ${coords.sy}) rotate(${h}) scale(${iconScale})`);
     });
 
