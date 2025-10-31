@@ -112,7 +112,7 @@ window.showAircraftDetails = async function(aircraft) {
   const callsignEl = document.getElementById('aircraft-callsign');
   callsignEl.textContent = aircraft.callsign || 'Unknown';
 
-  const userId = extractUserId(aircraft.id);
+  const userId = aircraft.pilot;
   let username = 'Unknown Player';
   
   if (userId) {
