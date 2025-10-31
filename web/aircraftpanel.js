@@ -48,7 +48,7 @@ function createAircraftPanel() {
   panel.appendChild(closeButton);
 
   document.body.appendChild(panel);
-  
+
   // Load Press Start 2P font
   if (!document.getElementById('press-start-2p-font')) {
     const link = document.createElement('link');
@@ -66,7 +66,7 @@ async function getRobloxUsername(userId) {
   if (usernameCache.has(userId)) {
     return usernameCache.get(userId);
   }
-  
+
   try {
     const response = await fetch(`https://users.roproxy.com/v1/users/${userId}`);
     if (!response.ok) {
@@ -74,7 +74,7 @@ async function getRobloxUsername(userId) {
     }
     const data = await response.json();
     const username = data.name;
-    
+
     // Cache the result
     usernameCache.set(userId, username);
     return username;
@@ -92,7 +92,7 @@ function extractUserId(aircraftId) {
 }
 
 // Show aircraft details in the panel
-window.showAircraftDetails = async function(aircraft) {
+window.showAircraftDetails = async function (aircraft) {
   closeAircraftPanel();
   console.log('aircraft payload:', aircraft);
   window.selectedAircraft = aircraft;
@@ -105,18 +105,18 @@ window.showAircraftDetails = async function(aircraft) {
       icon.setAttribute('fill', 'rgb(230, 77, 46)');
     }
   }
-  
+
   const panel = createAircraftPanel();
-  
+
   // Update callsign
   const callsignEl = document.getElementById('aircraft-callsign');
   callsignEl.textContent = aircraft.callsign || 'Unknown';
 
   const userId = aircraft.pilot;
   let username = 'Unknown Player';
-  
+
   if (userId) {
-    
+
     // Fetch username
     const fetchedUsername = await getRobloxUsername(userId);
     if (fetchedUsername) {
@@ -126,11 +126,11 @@ window.showAircraftDetails = async function(aircraft) {
 
   const pilotEl = document.getElementById('aircraft-pilot');
   pilotEl.textContent = username || 'Unknown';
-  
+
   // Update image (placeholder for now)
   const imageContainer = document.getElementById('aircraft-image-container');
   imageContainer.innerHTML = '';
-  
+
   // If aircraft has an image URL, display it
   if (aircraft.imageUrl) {
     const img = document.createElement('img');
@@ -142,23 +142,32 @@ window.showAircraftDetails = async function(aircraft) {
     placeholderText.textContent = 'No Image';
     imageContainer.appendChild(placeholderText);
   }
-  
+
   // Update aircraft type
   const typeEl = document.getElementById('aircraft-type');
   const icao = aircraft.icao || 'UNKN';
   const rest = (aircraft.airframe || '') + (aircraft.subtype || '');
 
+  const airlineEl = document.getElementById('aircraft-airline');
+  const airline = aircraft.airline || 'Unknown Airline';
+  const prefix = 'Operated by: ';
+
   typeEl.innerHTML = `
     <span class="icao-badge">${icao}</span>
     <span class="airframe-text"> | ${rest}</span>
   `;
-  
+
+  airlineEl.innerHTML = `
+    <span class="airframe-text"> | ${prefix}</span>
+    <span class="icao-badge">${airline}</span>
+  `;
+
   // Slide panel in
   panel.style.left = '0';
 };
 
 // Close the aircraft panel
-window.closeAircraftPanel = function() {
+window.closeAircraftPanel = function () {
   const panel = document.getElementById('aircraft-panel');
   if (panel) {
     panel.style.left = '-20%';
