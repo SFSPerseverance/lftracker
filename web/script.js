@@ -28,6 +28,17 @@ let reconnectTimeout = null;
 const RENDER_WS_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://') + 'horizon-backend-4f8h.onrender.com/ws/aircraft';
 let affine = null; // world -> svg affine matrix (computed from anchors)
 
+function setAircraftInQuery(id) {
+  const url = new URL(location.href);
+  url.searchParams.set('aircraft', id);
+  history.pushState({ aircraft: id }, '', url.toString());
+}
+
+function getAircraftFromQuery() {
+  const params = new URLSearchParams(location.search);
+  return params.get('aircraft');
+}
+
 // optional raster-warning overlay
 function showRasterWarning() {
     let d = document.getElementById('raster-warning');
@@ -586,6 +597,7 @@ function upsertSVGPlane(aircraft) {
         g.addEventListener('click', (ev) => {
             // show full details using your existing helper (if defined)
             if (typeof showAircraftDetails === 'function') {
+                setAircraftInQuery(aircraft.id);
                 showAircraftDetails(aircraft);
             }
             ev.stopPropagation();
