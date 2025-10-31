@@ -4,53 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>LFTracker — Map</title>
-
   <link rel="stylesheet" href="web/style.css" />
   <link rel="stylesheet" href="web/panelstyle.css">
-
-  <style>
-    .crt-overlay {
-      pointer-events: none;
-      position: fixed;
-      inset: 0;
-      z-index: 999999;
-
-      background:
-        repeating-linear-gradient(
-          to bottom,
-          rgba(0,0,0,0.25) 0px,
-          rgba(0,0,0,0.25) 1px,
-          transparent 2px,
-          transparent 3px
-        );
-
-      mix-blend-mode: multiply;
-      opacity: 0.8;
-    }
-
-    /* Optional slight screen curve + glow */
-    body {
-      background: black;
-    }
-
-    #map-container {
-      filter: contrast(1.1) brightness(1.1) saturate(1.2);
-    }
-
-    .crt-glow {
-      pointer-events: none;
-      position: fixed;
-      inset: 0;
-      z-index: 999998;
-      background: radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0.7) 70%);
-      mix-blend-mode: screen;
-    }
-  </style>
 </head>
 <body>
-  <div class="crt-overlay"></div>
-  <div class="crt-glow"></div>
-
   <div id="map-container" aria-label="Map container">
     <!-- SVG will be loaded here -->
   </div>

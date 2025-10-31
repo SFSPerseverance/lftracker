@@ -959,6 +959,4 @@ if (typeof showAircraftDetails !== 'function') {
     };
 }
 
-applyCRTEffect(container, { flicker: true, glow: true });
-
 // ---------- END MERGED FILE ----------
