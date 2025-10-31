@@ -692,8 +692,12 @@ function upsertSVGPlane(aircraft) {
         const category = getAircraftCategory(aircraft.icao);
         const pathData = getAircraftIcon(category);
 
-        const icon = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        icon.setAttribute('d', pathData);
+        const icon = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+        icon.setAttribute('href', pathData);
+        icon.setAttribute('x', -12);
+        icon.setAttribute('y', -12);
+        icon.setAttribute('width', 24);
+        icon.setAttribute('height', 24);
         icon.setAttribute('fill', 'rgb(255, 170, 0)');
         icon.setAttribute('stroke', '#222');
         icon.setAttribute('stroke-width', '0.8');
