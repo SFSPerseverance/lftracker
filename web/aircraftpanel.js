@@ -40,6 +40,10 @@ function createAircraftPanel() {
   aircraftType.id = 'aircraft-type';
   panel.appendChild(aircraftType);
 
+  const aircraftAirline = document.createElement('div');
+  aircraftAirline.id = 'aircraft-airline';
+  panel.appendChild(aircraftAirline);
+
   // Close button (X in top right of panel)
   const closeButton = document.createElement('button');
   closeButton.id = 'aircraft-panel-close';
