@@ -553,6 +553,65 @@ function worldToSvg(wx, wz, latLonFallback = null) {
     return null;
 }
 
+function findAircraftById(id) {
+  // adapt: if you maintain an array 'aircraftList' or a Map on window
+  if (!id) return null;
+  // example if you store all aircraft in window.aircraftList array
+  if (window.aircraftList && Array.isArray(window.aircraftList)) {
+    return window.aircraftList.find(a => String(a.id) === String(id)) || null;
+  }
+  // or if you use a Map:
+  if (window.aircraftMap && window.aircraftMap instanceof Map) {
+    return window.aircraftMap.get(id) || null;
+  }
+  return null;
+}
+
+// Wait until aircraft exists (poll) — cancels after timeout ms
+function waitForAircraft(id, timeout = 5000, interval = 200) {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    const tryFind = () => {
+      const a = findAircraftById(id);
+      if (a) return resolve(a);
+      if (Date.now() - start >= timeout) return reject(new Error('timeout'));
+      setTimeout(tryFind, interval);
+    };
+    tryFind();
+  });
+}
+
+async function focusAircraftFromURL() {
+  const id = getAircraftFromQuery();
+  if (!id) return;
+  // try immediate find
+  const a = findAircraftById(id);
+  if (a) {
+    showAircraftDetails(a);
+    return;
+  }
+  // otherwise wait for data to arrive (e.g. via websocket)
+  try {
+    const awaited = await waitForAircraft(id, 10000, 200); // 10s max
+    showAircraftDetails(awaited);
+  } catch (e) {
+    console.warn('Could not find aircraft from URL:', id);
+  }
+}
+
+// run on initial load
+focusAircraftFromURL();
+
+// react to hash changes or back/forward
+window.addEventListener('hashchange', () => {
+  focusAircraftFromURL();
+});
+
+// if using pushState / query parameter approach, listen for popstate
+window.addEventListener('popstate', (ev) => {
+  focusAircraftFromURL();
+});
+
 // create or update an SVG plane marker (idempotent)
 function upsertSVGPlane(aircraft) {
     // aircraft object expected to have: id, latitude, longitude, heading, altitude, speed, callsign, ...
