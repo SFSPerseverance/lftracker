@@ -551,18 +551,40 @@ function worldToSvg(wx, wz, latLonFallback = null) {
         return { sx, sy };
     }
     return null;
+    
+}
+
+window.aircraftMap = window.aircraftMap || new Map(); // id -> aircraft object (source of truth)
+window.aircraftList = window.aircraftList || [];     // array view (kept in sync)
+
+// helper: add or merge aircraft into store and update array view
+function addOrUpdateAircraftInStore(incoming) {
+  if (!incoming) return null;
+  const id = String(incoming.id || incoming.callsign || '').trim();
+  if (!id) return null;
+
+  const existing = window.aircraftMap.get(id) || {};
+  // merge with incoming (incoming wins)
+  const merged = Object.assign({}, existing, incoming, { id });
+  // Ensure numeric fields are numbers if strings arrive (optional safety)
+  if (merged.latitude != null) merged.latitude = Number(merged.latitude);
+  if (merged.longitude != null) merged.longitude = Number(merged.longitude);
+  if (merged.heading != null) merged.heading = Number(merged.heading);
+  // store
+  window.aircraftMap.set(id, merged);
+  // keep list view in sync
+  window.aircraftList = Array.from(window.aircraftMap.values());
+  return merged;
 }
 
 function findAircraftById(id) {
-  // adapt: if you maintain an array 'aircraftList' or a Map on window
   if (!id) return null;
-  // example if you store all aircraft in window.aircraftList array
-  if (window.aircraftList && Array.isArray(window.aircraftList)) {
-    return window.aircraftList.find(a => String(a.id) === String(id)) || null;
-  }
-  // or if you use a Map:
+  const sid = String(id);
   if (window.aircraftMap && window.aircraftMap instanceof Map) {
-    return window.aircraftMap.get(id) || null;
+    return window.aircraftMap.get(sid) || null;
+  }
+  if (window.aircraftList && Array.isArray(window.aircraftList)) {
+    return window.aircraftList.find(a => String(a.id) === sid) || null;
   }
   return null;
 }
@@ -796,12 +818,19 @@ function handleWSMessage(msg) {
     switch (msg.type) {
         case 'initial_data':
             if (Array.isArray(msg.aircraft)) {
-                msg.aircraft.forEach(a => upsertSVGPlane(a));
+                // populate store first, then create markers from stored/merged objects
+                msg.aircraft.forEach(a => {
+                    const stored = addOrUpdateAircraftInStore(a);
+                    if (stored) upsertSVGPlane(stored);
+                });
             }
             break;
         case 'aircraft_update':
             if (Array.isArray(msg.aircraft)) {
-                msg.aircraft.forEach(a => upsertSVGPlane(a));
+                msg.aircraft.forEach(a => {
+                    const stored = addOrUpdateAircraftInStore(a);
+                    if (stored) upsertSVGPlane(stored);
+                });
             }
             break;
         case 'aircraft_removed':
@@ -817,21 +846,29 @@ function handleWSMessage(msg) {
 }
 
 function removeAircraftSVG(id) {
-    const entry = aircraftMarkers.get(id);
-    if (!entry) return;
-    if (entry.g && entry.g.parentNode) entry.g.parentNode.removeChild(entry.g);
-    aircraftMarkers.delete(id);
-    // close side panel if selected aircraft removed
-    if (window.selectedAircraft && window.selectedAircraft.id === id && typeof closeAircraftPanel === 'function') {
+    const sid = String(id);
+    const entry = aircraftMarkers.get(sid);
+    if (entry && entry.g && entry.g.parentNode) entry.g.parentNode.removeChild(entry.g);
+    aircraftMarkers.delete(sid);
+    // remove from store
+    if (window.aircraftMap && window.aircraftMap.has(sid)) {
+        window.aircraftMap.delete(sid);
+        window.aircraftList = Array.from(window.aircraftMap.values());
+    }
+    if (window.selectedAircraft && String(window.selectedAircraft.id) === sid && typeof closeAircraftPanel === 'function') {
         closeAircraftPanel();
     }
 }
+
 
 function clearAllAircraftSVG() {
     aircraftMarkers.forEach((entry, id) => {
         if (entry.g && entry.g.parentNode) entry.g.parentNode.removeChild(entry.g);
     });
     aircraftMarkers.clear();
+    // clear store
+    if (window.aircraftMap) window.aircraftMap.clear();
+    window.aircraftList = [];
     if (typeof closeAircraftPanel === 'function') closeAircraftPanel();
 }
 
