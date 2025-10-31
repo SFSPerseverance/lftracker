@@ -8,16 +8,8 @@
     top: 0;
     width: 20%;
     height: 100vh;
-   background:
-  rgba(26,26,26,0.7),
-  linear-gradient(90deg,
-    rgba(255,170,0,1) 0%,
-    rgba(156,112,0,1) 15%,
-    rgba(156,112,0,1) 85%,
-    rgba(255,170,0,1) 100%
-  );
-
-    background-blend-mode: overlay;
+    background: linear-gradient(90deg, rgba(255,170,0,0.3) 0%, rgba(156, 112, 0,0.3) 15%, rgba(156, 112, 0,0.3) 85%,rgba(255,170,0,0.3) 100%), rgba(26, 26, 26,0.3);
+    background-blend-mode:  normal;
     border: 3px solid rgb(255, 170, 0);
     border-left: none;
     border-top-right-radius: 12px;
