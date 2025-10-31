@@ -808,6 +808,18 @@ function aircraftRenderLoop() {
     requestAnimationFrame(aircraftRenderLoop);
 }
 
+function applyCRTEffect(el, { flicker = true, glow = true } = {}) {
+  if (!el) return;
+  el.classList.add('crt');
+  if (flicker) el.classList.add('flicker');
+  if (glow) el.classList.add('crt-glow');
+}
+function removeCRTEffect(el) {
+  if (!el) return;
+  el.classList.remove('crt','flicker','crt-glow');
+}
+
+
 // WebSocket helpers (similar reconnect/backoff logic you provided)
 function initializeAircraftTracking() {
     connectWS();
@@ -946,5 +958,7 @@ if (typeof showAircraftDetails !== 'function') {
         console.log('Aircraft clicked:', aircraft);
     };
 }
+
+applyCRTEffect(container, { flicker: true, glow: true });
 
 // ---------- END MERGED FILE ----------

@@ -9,6 +9,62 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
+.crt {
+  /* subtle color/contrast boost + SVG filter */
+  filter: url(#crt-filter) contrast(1.06) saturate(1.08) brightness(0.98);
+  position: relative; /* ensures overlay ::after positions correctly */
+  overflow: visible;
+  /* softer edges for retro look */
+  -webkit-font-smoothing: antialiased;
+  image-rendering: optimizeQuality;
+}
+
+/* scanlines + vignette overlay */
+.crt::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  inset: 0;
+  z-index: 9999;
+  mix-blend-mode: multiply;
+  background-image:
+    /* scanlines */
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 1px,
+      rgba(0,0,0,0.06) 2px,
+      rgba(0,0,0,0.06) 3px
+    ),
+    /* subtle vignette */
+    radial-gradient(closest-side, rgba(0,0,0,0) 50%, rgba(0,0,0,0.35) 100%);
+  background-size: 100% 3px, cover;
+  opacity: 0.85;
+  transition: opacity .25s ease;
+}
+
+/* optional subtle flicker animation — keep mild */
+@keyframes crtFlicker {
+  0%   { opacity: 0.82; }
+  50%  { opacity: 0.88; }
+  100% { opacity: 0.83; }
+}
+.crt.flicker::after {
+  animation: crtFlicker 3s linear infinite;
+}
+
+/* rounded screen glow (optional outer glow) */
+.crt-glow {
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5), inset 0 2px 20px rgba(255,200,120,0.02);
+  border-radius: 6px;
+}
+
+/* small accessibility: reduce effect on small screens */
+@media (max-width: 700px) {
+  .crt { filter: none; }
+  .crt::after { opacity: 0.5; }
+}
+
 /* map area */
 #map-container {
   width: 100vw;
