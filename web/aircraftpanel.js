@@ -145,8 +145,13 @@ window.showAircraftDetails = async function(aircraft) {
   
   // Update aircraft type
   const typeEl = document.getElementById('aircraft-type');
-  const typeText = aircraft.icao + " | " + aircraft.airframe + aircraft.subtype;
-  typeEl.textContent = typeText || aircraft.aircraft_type || 'Unknown Type';
+  const icao = aircraft.icao || 'UNKN';
+  const rest = (aircraft.airframe || '') + (aircraft.subtype || '');
+
+  typeEl.innerHTML = `
+    <span class="icao-badge">${icao}</span>
+    <span class="airframe-text"> | ${rest}</span>
+  `;
   
   // Slide panel in
   panel.style.left = '0';
