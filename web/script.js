@@ -670,8 +670,17 @@ window.addEventListener('popstate', (ev) => {
   focusAircraftFromURL();
 });
 
+async function getPathFromSVG(url) {
+  const res = await fetch(url);
+  const text = await res.text();
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(text, "image/svg+xml");
+  const path = doc.querySelector('path');
+  return path ? path.getAttribute('d') : '';
+}
+
 // create or update an SVG plane marker (idempotent)
-function upsertSVGPlane(aircraft) {
+async function upsertSVGPlane(aircraft) {
     // aircraft object expected to have: id, latitude, longitude, heading, altitude, speed, callsign, ...
     if (!svgEl) return;
     const id = aircraft.id || aircraft.callsign || ('plane-' + Math.random().toString(36).slice(2, 8));
@@ -690,7 +699,7 @@ function upsertSVGPlane(aircraft) {
         g.style.cursor = 'pointer';
 
         const category = getAircraftCategory(aircraft.icao);
-        const pathData = getAircraftIcon(category);
+        const pathData = await getPathFromSVG(getAircraftIcon(category));
 
         const icon = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         icon.setAttribute('d', pathData);
