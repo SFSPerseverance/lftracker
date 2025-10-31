@@ -93,6 +93,7 @@ function extractUserId(aircraftId) {
 
 // Show aircraft details in the panel
 window.showAircraftDetails = async function(aircraft) {
+  closeAircraftPanel();
   console.log('aircraft payload:', aircraft);
   window.selectedAircraft = aircraft;
 
