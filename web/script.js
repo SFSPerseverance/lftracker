@@ -791,7 +791,7 @@ function aircraftRenderLoop() {
         // Current zoom scale relative to original viewBox
         const rect = container.getBoundingClientRect();
         const cssPixelToSvgUnit = curVB.w / rect.width; // how many SVG units = 1 CSS pixel
-        const targetSvgSize = 24 * cssPixelToSvgUnit; // 24 CSS pixels in SVG units
+        const targetSvgSize = 32 * cssPixelToSvgUnit; // 24 CSS pixels in SVG units
 
         // Assuming icon path is designed for ~100 unit viewBox, scale to targetSvgSize
         const iconScale = targetSvgSize / 512;
