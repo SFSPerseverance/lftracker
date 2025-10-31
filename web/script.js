@@ -702,6 +702,8 @@ async function upsertSVGPlane(aircraft) {
         const pathData = await getPathFromSVG(getAircraftIcon(category));
 
         const icon = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        g.setAttribute('transform', `translate(${screenX},${screenY}) rotate(${aircraft.heading}) scale(0.12)`);
+        icon.setAttribute('transform', 'translate(-50 -50)'); // ONLY if your SVG bounds are 0-100
         icon.setAttribute('d', pathData);
         icon.setAttribute('fill', 'rgb(255, 170, 0)');
         icon.setAttribute('stroke', '#222');
