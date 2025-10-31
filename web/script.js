@@ -28,6 +28,42 @@ let reconnectTimeout = null;
 const RENDER_WS_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://') + 'horizon-backend-4f8h.onrender.com/ws/aircraft';
 let affine = null; // world -> svg affine matrix (computed from anchors)
 
+const aircraftIcons = {
+  fighter: ['A10'],
+  narrowbody: ['B73'],
+  narrowbody_tailengine: ['BA11'],
+  sevenfiveseven: ['B75'],
+  fourengine: ['B74'],
+  threeengine: ['L101'],
+  singleprop: ['TBM7'],
+  businessjet: ['CL60'],
+};
+
+const iconFiles = {
+  fighter: '/icons/fighter.svg',
+  narrowbody: '/icons/narrowbody.svg',
+  narrowbody_tailengine: '/icons/tailengine.svg',
+  threeengine: '/icons/three_engine.svg',
+  singleprop: '/icons/prop.svg',
+  businessjet: '/icons/business.svg',
+  fourengine: '/icons/four_engine.svg',
+  sevenfiveseven: '/icons/b757.svg'
+};
+
+function getAircraftIcon(category) {
+    const file = iconFiles[category] || iconFiles['narrowbody'];
+    return file;
+}
+
+function getAircraftCategory(icaoCode) {
+  for (const [category, prefixes] of Object.entries(icaoCategories)) {
+    if (prefixes.some(prefix => icaoCode.startsWith(prefix))) {
+      return category;
+    }
+  }
+  return 'default';
+}
+
 function setAircraftInQuery(id) {
   const url = new URL(location.href);
   url.searchParams.set('aircraft', id);
@@ -653,10 +689,11 @@ function upsertSVGPlane(aircraft) {
         g.setAttribute('data-aircraft-id', id);
         g.style.cursor = 'pointer';
 
-        // icon: airplane shape in LegacyFlight Gold (rgb(255, 170, 0))
+        const category = getAircraftCategory(aircraft.icao);
+        const pathData = getAircraftIcon(category);
+
         const icon = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        // Airplane silhouette pointing upward (north)
-        icon.setAttribute('d', 'M0,-12 L2,-10 L2,-2 L8,4 L8,6 L2,4 L2,8 L3,10 L3,11 L0,10 L-3,11 L-3,10 L-2,8 L-2,4 L-8,6 L-8,4 L-2,-2 L-2,-10 Z');
+        icon.setAttribute('d', pathData);
         icon.setAttribute('fill', 'rgb(255, 170, 0)');
         icon.setAttribute('stroke', '#222');
         icon.setAttribute('stroke-width', '0.8');
