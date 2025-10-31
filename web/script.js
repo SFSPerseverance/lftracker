@@ -706,6 +706,7 @@ icon.setAttribute('d', pathData);
 icon.setAttribute('fill', 'rgb(255, 170, 0)');
 icon.setAttribute('stroke', '#000');
 icon.setAttribute('stroke-width', '12');
+icon.setAttribute('transform', 'translate(-256 -256)');
 
         // label (hidden by default)
         const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -797,9 +798,8 @@ function aircraftRenderLoop() {
 
         // apply transform: translate(sx,sy) rotate(heading) scale(iconScale)
         const h = -(entry.state.heading || 0);
-// Divide iconScale from translation, or apply scale after positioning
-entry.g.setAttribute('transform', `translate(${coords.sx}, ${coords.sy})`);
-entry.icon.setAttribute('transform', `rotate(${h}) scale(${iconScale}) translate(-256, -256)`);
+const centerOffset = 256 * iconScale; // Scale the centering offset too
+entry.g.setAttribute('transform', `translate(${coords.sx - centerOffset}, ${coords.sy - centerOffset}) rotate(${h}) scale(${iconScale})`);
     });
 
     // occasionally cleanup
