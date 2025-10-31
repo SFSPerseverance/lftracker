@@ -798,8 +798,8 @@ function aircraftRenderLoop() {
 
         // apply transform: translate(sx,sy) rotate(heading) scale(iconScale)
         const h = -(entry.state.heading || 0);
-const centerOffset = 256 * iconScale; // Scale the centering offset too
-entry.g.setAttribute('transform', `translate(${coords.sx - centerOffset}, ${coords.sy - centerOffset}) rotate(${h}) scale(${iconScale})`);
+        const centerOffset = 256 * iconScale; // Scale the centering offset too
+        entry.g.setAttribute('transform', `translate(${coords.sx}, ${coords.sy}) scale(${iconScale}) rotate(${h})`);
     });
 
     // occasionally cleanup
