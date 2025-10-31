@@ -776,7 +776,6 @@ function connectWS() {
     }
 
     ws.onopen = () => {
-        console.log('Connected to aircraft tracking server', RENDER_WS_URL);
         if (typeof showMessage === 'function') showMessage('Connected to live aircraft tracking', 'success');
         reconnectAttempts = 0;
     };
@@ -874,10 +873,6 @@ function clearAllAircraftSVG() {
 
 // Expose debug function similar to your original
 window.checkAircraftStatus = () => {
-    console.log('Aircraft tracking status:');
-    console.log('- WebSocket state:', ws ? ws.readyState : 'Not initialized');
-    console.log('- Active aircraft:', aircraftMarkers.size);
-    console.log('- Reconnect attempts:', reconnectAttempts);
     return {
         websocketState: ws ? ws.readyState : 'Not initialized',
         aircraftCount: aircraftMarkers.size,
