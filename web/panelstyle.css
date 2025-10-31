@@ -21,6 +21,7 @@
     z-index: 10000;
     transition: left 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
     overflow-y: auto;
+    overflow: hidden;
     font-family: 'Press Start 2P', cursive;
     color: white;
 }
