@@ -56,7 +56,7 @@ function getAircraftIcon(category) {
 }
 
 function getAircraftCategory(icaoCode) {
-  for (const [category, prefixes] of Object.entries(icaoCategories)) {
+  for (const [category, prefixes] of Object.entries(aircraftIcons)) {
     if (prefixes.some(prefix => icaoCode.startsWith(prefix))) {
       return category;
     }
