@@ -9,8 +9,8 @@
     width: 20%;
     height: 100vh;
     background-color: rgba(26, 26, 26,0.3);
-    background: linear-gradient(0deg, rgb(255,170,0) 0%, rgb(156, 112, 0) 15%, rgb(156, 112, 0) 85%,rgb(255,170,0) 100%);
-    background-blend-mode:  multiply;
+    background: linear-gradient(90deg, rgb(255,170,0) 0%, rgb(156, 112, 0) 15%, rgb(156, 112, 0) 85%,rgb(255,170,0) 100%);
+    background-blend-mode:  overlay;
     border: 3px solid rgb(255, 170, 0);
     border-left: none;
     border-top-right-radius: 12px;
