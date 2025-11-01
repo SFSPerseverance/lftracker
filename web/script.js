@@ -695,9 +695,6 @@ async function upsertSVGPlane(aircraft) {
     
     let entry = aircraftMarkers.get(id);
 
-    // choose world coords for mapping:
-    // prefer incoming fields latitude & longitude -> treat as lat/lon fallback,
-    // else if message sends worldX/worldZ use those (we try both).
     const wx = ('worldX' in aircraft) ? aircraft.worldX : (('latitude' in aircraft) ? aircraft.latitude : NaN);
     const wz = ('worldZ' in aircraft) ? aircraft.worldZ : (('longitude' in aircraft) ? aircraft.longitude : NaN);
 
@@ -760,6 +757,7 @@ icon.setAttribute('stroke-width', '12');
         entry.raw = aircraft;
         // update label text quickly
         if (aircraft.callsign) entry.label.textContent = aircraft.callsign;
+        creatingMarkers.delete(id);
     }
 }
 
