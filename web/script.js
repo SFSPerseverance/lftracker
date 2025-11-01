@@ -702,6 +702,7 @@ async function upsertSVGPlane(aircraft) {
         // create group with icon + label
         if (creatingMarkers.has(id)) return;
          creatingMarkers.add(id);
+         creatingMarkers.delete(id);
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         g.setAttribute('data-aircraft-id', id);
         g.style.cursor = 'pointer';
@@ -766,10 +767,7 @@ function cleanupStaleAircraft() {
     const now = Date.now();
     const stale = [];
     aircraftMarkers.forEach((entry, id) => {
-        if (now - entry.lastTs > 30 * 1000) {
-            console.log('STALE AIRCRAFT:', id, 'age:', (now - entry.lastTs)/1000, 'seconds');
-            stale.push(id);
-        }
+        if (now - entry.lastTs > 30 * 1000) stale.push(id);
     });
     stale.forEach(id => {
         const e = aircraftMarkers.get(id);
