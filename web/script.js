@@ -40,14 +40,14 @@ const aircraftIcons = {
 };
 
 const iconFiles = {
-    fighter: 'icons/narrowbody.svg',
+    fighter: 'icons/a10.svg',
     narrowbody: 'icons/narrowbody.svg',
     narrowbody_tailengine: '/icons/narrowbody.svg',
     threeengine: 'icons/threeengine.svg',
     singleprop: 'icons/singleprop.svg',
     businessjet: 'icons/narrowbody.svg',
     fourengine: 'icons/fourengine.svg',
-    sevenfiveseven: 'icons/narrowbody.svg'
+    sevenfiveseven: 'icons/sevenfiveseven.svg'
 };
 
 function getAircraftIcon(category) {
