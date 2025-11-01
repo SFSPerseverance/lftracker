@@ -706,7 +706,6 @@ icon.setAttribute('d', pathData);
 icon.setAttribute('fill', 'rgb(255, 170, 0)');
 icon.setAttribute('stroke', '#000');
 icon.setAttribute('stroke-width', '12');
-icon.setAttribute('transform', 'translate(-256 -256)');
 
         // label (hidden by default)
         const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
