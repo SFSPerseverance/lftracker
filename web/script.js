@@ -769,7 +769,7 @@ function cleanupStaleAircraft() {
         if (now - entry.lastTs > 30 * 1000) stale.push(id);
     });
     stale.forEach(id => {
-        const e = aircraftMarkers.get(id);
+        const entry = aircraftMarkers.get(id);
         aircraftMarkers.delete(id); // Delete from Map FIRST
 if (entry && entry.g && entry.g.parentNode) entry.g.parentNode.removeChild(entry.g);
         aircraftMarkers.delete(id);
