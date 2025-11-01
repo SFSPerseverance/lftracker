@@ -758,7 +758,6 @@ icon.setAttribute('stroke-width', '12');
         entry.raw = aircraft;
         // update label text quickly
         if (aircraft.callsign) entry.label.textContent = aircraft.callsign;
-        creatingMarkers.delete(id);
     }
 }
 
