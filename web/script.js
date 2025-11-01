@@ -682,8 +682,15 @@ async function getPathFromSVG(url) {
 // create or update an SVG plane marker (idempotent)
 async function upsertSVGPlane(aircraft) {
     // aircraft object expected to have: id, latitude, longitude, heading, altitude, speed, callsign, ...
-    if (!svgEl) return;
+   if (!svgEl) return;
     const id = aircraft.id || aircraft.callsign || ('plane-' + Math.random().toString(36).slice(2, 8));
+    
+    // Add this check to remove any existing DOM elements with this ID:
+    const existingElements = svgEl.querySelectorAll(`[data-aircraft-id="${id}"]`);
+    existingElements.forEach(el => {
+        if (el.parentNode) el.parentNode.removeChild(el);
+    });
+    
     let entry = aircraftMarkers.get(id);
 
     // choose world coords for mapping:
