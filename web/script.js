@@ -683,40 +683,29 @@ const creatingMarkers = new Set();
 
 // create or update an SVG plane marker (idempotent)
 async function upsertSVGPlane(aircraft) {
-    // aircraft object expected to have: id, latitude, longitude, heading, altitude, speed, callsign, ...
-   if (!svgEl) return;
+    if (!svgEl) return;
     const id = aircraft.id || aircraft.callsign || ('plane-' + Math.random().toString(36).slice(2, 8));
     
-    // Add this check to remove any existing DOM elements with this ID:
-    /* const existingElements = svgEl.querySelectorAll(`[data-aircraft-id="${id}"]`);
-    existingElements.forEach(el => {
-        if (el.parentNode) el.parentNode.removeChild(el);
-    }); */
-    
-    let entry = aircraftMarkers.get(id);
-
     const wx = ('worldX' in aircraft) ? aircraft.worldX : (('latitude' in aircraft) ? aircraft.latitude : NaN);
     const wz = ('worldZ' in aircraft) ? aircraft.worldZ : (('longitude' in aircraft) ? aircraft.longitude : NaN);
 
+    let entry = aircraftMarkers.get(id);
+
     if (!entry) {
-        // create group with icon + label
+        // Check if already creating
         if (creatingMarkers.has(id)) return;
-         creatingMarkers.add(id);
-         creatingMarkers.delete(id);
+        creatingMarkers.add(id);
+        
+        // Create synchronously first, load path async after
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         g.setAttribute('data-aircraft-id', id);
         g.style.cursor = 'pointer';
 
-        const category = getAircraftCategory(aircraft.icao);
-        const pathData = await getPathFromSVG(getAircraftIcon(category));
-
         const icon = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-icon.setAttribute('d', pathData);
-icon.setAttribute('fill', 'rgb(255, 170, 0)');
-icon.setAttribute('stroke', '#000');
-icon.setAttribute('stroke-width', '12');
+        icon.setAttribute('fill', 'rgb(255, 170, 0)');
+        icon.setAttribute('stroke', '#000');
+        icon.setAttribute('stroke-width', '12');
 
-        // label (hidden by default)
         const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         label.setAttribute('x', '12');
         label.setAttribute('y', '4');
@@ -729,9 +718,7 @@ icon.setAttribute('stroke-width', '12');
         g.appendChild(icon);
         g.appendChild(label);
 
-        // attach click to open side panel
         g.addEventListener('click', (ev) => {
-            // show full details using your existing helper (if defined)
             if (typeof showAircraftDetails === 'function') {
                 setAircraftInQuery(aircraft.id);
                 showAircraftDetails(aircraft);
@@ -739,7 +726,6 @@ icon.setAttribute('stroke-width', '12');
             ev.stopPropagation();
         });
 
-        // add to svg
         svgEl.appendChild(g);
 
         entry = {
@@ -751,12 +737,18 @@ icon.setAttribute('stroke-width', '12');
         };
         aircraftMarkers.set(id, entry);
         creatingMarkers.delete(id);
+        
+        // Load icon path async AFTER marker is created
+        const category = getAircraftCategory(aircraft.icao);
+        getPathFromSVG(getAircraftIcon(category)).then(pathData => {
+            icon.setAttribute('d', pathData);
+        });
     } else {
-        // update target state
-        entry.target = { x: wx || entry.target.x, z: wz || entry.target.z, heading: ('heading' in aircraft) ? aircraft.heading : entry.target.heading };
+        // Update existing
+        const newHeading = (typeof aircraft.heading === 'number' && !isNaN(aircraft.heading)) ? aircraft.heading : entry.target.heading;
+        entry.target = { x: wx || entry.target.x, z: wz || entry.target.z, heading: newHeading };
         entry.lastTs = Date.now();
         entry.raw = aircraft;
-        // update label text quickly
         if (aircraft.callsign) entry.label.textContent = aircraft.callsign;
     }
 }
