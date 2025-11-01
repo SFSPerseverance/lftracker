@@ -688,10 +688,10 @@ async function upsertSVGPlane(aircraft) {
     const id = aircraft.id || aircraft.callsign || ('plane-' + Math.random().toString(36).slice(2, 8));
     
     // Add this check to remove any existing DOM elements with this ID:
-    const existingElements = svgEl.querySelectorAll(`[data-aircraft-id="${id}"]`);
+    /* const existingElements = svgEl.querySelectorAll(`[data-aircraft-id="${id}"]`);
     existingElements.forEach(el => {
         if (el.parentNode) el.parentNode.removeChild(el);
-    });
+    }); */
     
     let entry = aircraftMarkers.get(id);
 
@@ -770,7 +770,7 @@ function cleanupStaleAircraft() {
     });
     stale.forEach(id => {
         const e = aircraftMarkers.get(id);
-        aircraftMarkers.delete(sid); // Delete from Map FIRST
+        aircraftMarkers.delete(id); // Delete from Map FIRST
 if (entry && entry.g && entry.g.parentNode) entry.g.parentNode.removeChild(entry.g);
         aircraftMarkers.delete(id);
     });
