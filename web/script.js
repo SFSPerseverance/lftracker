@@ -766,7 +766,10 @@ function cleanupStaleAircraft() {
     const now = Date.now();
     const stale = [];
     aircraftMarkers.forEach((entry, id) => {
-        if (now - entry.lastTs > 30 * 1000) stale.push(id);
+        if (now - entry.lastTs > 30 * 1000) {
+            console.log('STALE AIRCRAFT:', id, 'age:', (now - entry.lastTs)/1000, 'seconds');
+            stale.push(id);
+        }
     });
     stale.forEach(id => {
         const e = aircraftMarkers.get(id);
