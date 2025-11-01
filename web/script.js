@@ -761,7 +761,8 @@ function cleanupStaleAircraft() {
     });
     stale.forEach(id => {
         const e = aircraftMarkers.get(id);
-        if (e && e.g && e.g.parentNode) e.g.parentNode.removeChild(e.g);
+        aircraftMarkers.delete(sid); // Delete from Map FIRST
+if (entry && entry.g && entry.g.parentNode) entry.g.parentNode.removeChild(entry.g);
         aircraftMarkers.delete(id);
     });
 }
