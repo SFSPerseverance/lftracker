@@ -679,6 +679,8 @@ async function getPathFromSVG(url) {
     return path ? path.getAttribute('d') : '';
 }
 
+const creatingMarkers = new Set();
+
 // create or update an SVG plane marker (idempotent)
 async function upsertSVGPlane(aircraft) {
     // aircraft object expected to have: id, latitude, longitude, heading, altitude, speed, callsign, ...
@@ -701,6 +703,8 @@ async function upsertSVGPlane(aircraft) {
 
     if (!entry) {
         // create group with icon + label
+        if (creatingMarkers.has(id)) return;
+         creatingMarkers.add(id);
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         g.setAttribute('data-aircraft-id', id);
         g.style.cursor = 'pointer';
@@ -748,6 +752,7 @@ icon.setAttribute('stroke-width', '12');
             raw: aircraft
         };
         aircraftMarkers.set(id, entry);
+        creatingMarkers.delete(id);
     } else {
         // update target state
         entry.target = { x: wx || entry.target.x, z: wz || entry.target.z, heading: ('heading' in aircraft) ? aircraft.heading : entry.target.heading };
