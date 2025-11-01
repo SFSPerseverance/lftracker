@@ -44,9 +44,9 @@ const iconFiles = {
     narrowbody: 'icons/narrowbody.svg',
     narrowbody_tailengine: '/icons/narrowbody.svg',
     threeengine: 'icons/threeengine.svg',
-    singleprop: 'icons/narrowbody.svg',
+    singleprop: 'icons/singleprop.svg',
     businessjet: 'icons/narrowbody.svg',
-    fourengine: 'icons/narrowbody.svg',
+    fourengine: 'icons/fourengine.svg',
     sevenfiveseven: 'icons/narrowbody.svg'
 };
 
