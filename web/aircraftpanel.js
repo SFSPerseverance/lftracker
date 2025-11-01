@@ -99,9 +99,9 @@ function extractUserId(aircraftId) {
 window.showAircraftDetails = async function (aircraft) {
   closeAircraftPanel();
     const url = new URL(location.href);
-    url.searchParams.set('aircraft', id);
-    history.pushState({ aircraft: id }, '', url.toString());
-  window.selectedAircraft = aircraft;
+    url.searchParams.set('aircraft', aircraft.id);
+    history.pushState({ aircraft: aircraft.id }, '', url.toString());
+    window.selectedAircraft = aircraft;
 
   const aircraftId = aircraft.id || aircraft.callsign;
   const marker = document.querySelector(`[data-aircraft-id="${aircraftId}"]`);
