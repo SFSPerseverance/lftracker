@@ -98,7 +98,9 @@ function extractUserId(aircraftId) {
 // Show aircraft details in the panel
 window.showAircraftDetails = async function (aircraft) {
   closeAircraftPanel();
-  console.log('aircraft payload:', aircraft);
+    const url = new URL(location.href);
+    url.searchParams.set('aircraft', id);
+    history.pushState({ aircraft: id }, '', url.toString());
   window.selectedAircraft = aircraft;
 
   const aircraftId = aircraft.id || aircraft.callsign;
