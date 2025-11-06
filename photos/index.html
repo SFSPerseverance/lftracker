@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LFTracker — Plane Photos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #0c0f16;
+      color: #e0e0e0;
+      text-align: center;
+      margin: 0;
+      padding: 2rem;
+    }
+
+    h1 {
+      color: #00bcd4;
+    }
+
+    .upload-box {
+      background: #1a1e2a;
+      border: 2px dashed #00bcd4;
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 400px;
+      margin: 2rem auto;
+    }
+
+    input, select, button {
+      display: block;
+      width: 100%;
+      margin: 1rem 0;
+      padding: 0.5rem;
+      border-radius: 8px;
+      border: none;
+      background-color: #2a3040;
+      color: #e0e0e0;
+    }
+
+    button {
+      background-color: #00bcd4;
+      color: #0c0f16;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #00d0e0;
+    }
+
+    img {
+      max-width: 100%;
+      margin-top: 1rem;
+      border-radius: 8px;
+    }
+
+    footer {
+      margin-top: 3rem;
+      color: #888;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>LFTracker — Plane Photos</h1>
+  <p>Welcome to the LFTracker photo submission page! Here you can upload your screenshots of aircraft seen on LFTracker.  
+     Select the aircraft type and livery, and preview your photo before submitting.</p>
+
+  <div class="upload-box">
+    <h2>Upload a Photo</h2>
+    <input type="file" id="photoInput" accept="image/*">
+    <select id="planeSelect">
+      <option value="">Select Aircraft Type</option>
+      <option value="A320neo">Airbus A320neo</option>
+      <option value="B737MAX8">Boeing 737 MAX 8</option>
+      <option value="E195E2">Embraer E195-E2</option>
+      <option value="B7879">Boeing 787-9</option>
+      <option value="A350900">Airbus A350-900</option>
+      <option value="B777300ER">Boeing 777-300ER</option>
+      <option value="B757200">Boeing 757-200 (VIP)</option>
+    </select>
+
+    <select id="liverySelect">
+      <option value="">Select Livery</option>
+      <option value="AzureJet">AzureJet</option>
+      <option value="AzureJet Cargo">AzureJet Cargo</option>
+      <option value="AzureJet VIP">AzureJet VIP</option>
+      <option value="Special">Special Livery</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <img id="preview" alt="Preview will appear here">
+    <button id="submitBtn">Submit</button>
+  </div>
+
+  <footer>© 2025 LFTracker — sfsperseverance.github.io</footer>
+
+  <script>
+    const photoInput = document.getElementById("photoInput");
+    const preview = document.getElementById("preview");
+    const submitBtn = document.getElementById("submitBtn");
+
+    // Preview uploaded image
+    photoInput.addEventListener("change", () => {
+      const file = photoInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => preview.src = e.target.result;
+      reader.readAsDataURL(file);
+    });
+
+    // Fake submit action (for now)
+    submitBtn.addEventListener("click", () => {
+      const plane = document.getElementById("planeSelect").value;
+      const livery = document.getElementById("liverySelect").value;
+      if (!photoInput.files[0] || !plane || !livery) {
+        alert("Please select an image, aircraft type, and livery before submitting.");
+        return;
+      }
+      alert(`Photo submitted for ${plane} (${livery}).\n\n(Uploads not yet connected to a backend.)`);
+    });
+  </script>
+</body>
+</html>
