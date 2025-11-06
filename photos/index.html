@@ -196,7 +196,7 @@
     });
 
     /********************************************************
-      Canvas & crop logic (fixed side-resize behavior)
+      Canvas & crop logic (cursor mapping fixed for sides)
     *********************************************************/
     const mainCanvas = document.getElementById('mainCanvas');
     const ctx = mainCanvas.getContext('2d', {alpha:false});
@@ -335,7 +335,21 @@
       if(activePointerId !== null && e.pointerId !== activePointerId) return;
       const pos = toCanvasCoords(e);
       const hit = detectHit(pos.x, pos.y);
-      const cursor = (hit.type === 'corner') ? 'nwse-resize' : (hit.type === 'edge') ? 'ns-resize' : (hit.type === 'inside') ? 'move' : 'default';
+
+      // Fixed cursor mapping:
+      let cursor = 'default';
+      if(hit.type === 'corner'){
+        // corners: differentiate NW/SE and NE/SW for diagonal cursors
+        if(hit.which === 'nw' || hit.which === 'se') cursor = 'nwse-resize';
+        else cursor = 'nesw-resize';
+      } else if(hit.type === 'edge'){
+        if(hit.which === 'n' || hit.which === 's') cursor = 'ns-resize';
+        else if(hit.which === 'e' || hit.which === 'w') cursor = 'ew-resize';
+      } else if(hit.type === 'inside'){
+        cursor = 'move';
+      } else {
+        cursor = 'default';
+      }
       mainCanvas.style.cursor = cursor;
 
       if(state.dragging){
@@ -350,7 +364,7 @@
         const dx = pos.x - state.startX;
         const dy = pos.y - state.startY;
 
-        // Corners: behave as before
+        // Corners
         if(which === 'se'){
           newCrop.w = Math.max(minCropW, Math.round(state.startCrop.w + dx));
           newCrop.h = Math.round(newCrop.w * 9/16);
@@ -368,28 +382,22 @@
           newCrop.x = state.startCrop.x + (state.startCrop.w - newCrop.w);
           newCrop.y = state.startCrop.y + (state.startCrop.h - newCrop.h);
 
-        // Sides: keep aspect ratio, adjust orthogonal position to stay centered
+        // Sides: keep aspect ratio, adjust orthogonal pos to keep centered
         } else if(which === 'e'){
-          // change width from right edge; keep vertical center
           newCrop.w = Math.max(minCropW, Math.round(state.startCrop.w + dx));
           newCrop.h = Math.round(newCrop.w * 9/16);
-          // center vertically relative to start
           newCrop.y = Math.round(state.startCrop.y + (state.startCrop.h - newCrop.h)/2);
         } else if(which === 'w'){
-          // change width from left edge; adjust x to keep right edge fixed
           newCrop.w = Math.max(minCropW, Math.round(state.startCrop.w - dx));
           newCrop.h = Math.round(newCrop.w * 9/16);
           newCrop.x = state.startCrop.x + (state.startCrop.w - newCrop.w);
-          // center vertically
           newCrop.y = Math.round(state.startCrop.y + (state.startCrop.h - newCrop.h)/2);
         } else if(which === 'n'){
-          // change height from top; keep horizontal center
           newCrop.h = Math.max(Math.round(minCropW * 9/16), Math.round(state.startCrop.h - dy));
           newCrop.w = Math.round(newCrop.h * 16/9);
           newCrop.y = state.startCrop.y + (state.startCrop.h - newCrop.h);
           newCrop.x = Math.round(state.startCrop.x + (state.startCrop.w - newCrop.w)/2);
         } else if(which === 's'){
-          // change height from bottom; keep horizontal center
           newCrop.h = Math.max(Math.round(minCropW * 9/16), Math.round(state.startCrop.h + dy));
           newCrop.w = Math.round(newCrop.h * 16/9);
           newCrop.x = Math.round(state.startCrop.x + (state.startCrop.w - newCrop.w)/2);
@@ -492,6 +500,14 @@
     /********************************************************
       Init & responsiveness
     *********************************************************/
+    function renderAll(){
+      clearMain();
+      if(!imgLoaded) return;
+      fitImageToCanvas();
+      drawOverlayAndCrop();
+      updatePreview();
+    }
+
     function init(){
       resizeMainCanvas();
       crop.w = Math.floor(mainCanvas.width * 0.7);
