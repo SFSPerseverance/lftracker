@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>LFTRACKER — Photos</title>
 
-  <!-- Press Start 2P font -->
+  <!-- Press Start 2P -->
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
   <style>
@@ -18,28 +18,15 @@
       --stroke: 3px;
     }
 
-    /* Global - press start everywhere */
+    /* Global */
     * { box-sizing: border-box; font-family: 'Press Start 2P', monospace; color: var(--white); }
-    html, body { height: 100%; margin: 0; background: var(--bg); }
-    a { color: var(--white); text-decoration: none; }
+    html,body { height:100%; margin:0; background: var(--bg); }
+    .wrap { max-width:1000px; margin:28px auto; padding:18px; }
+    h1 { color: var(--accent); margin:0 0 8px; font-size:18px; text-align:center; }
+    p.lead { color:var(--white); opacity:0.95; text-align:center; font-size:11px; margin:8px 0 18px 0; }
 
-    .wrap { max-width: 1000px; margin: 28px auto; padding: 18px; }
-    h1 { color: var(--accent); margin: 0 0 8px 0; font-size: 18px; text-align:center }
-    p.lead { color: var(--white); opacity: 0.95; text-align:center; font-size:11px; margin: 8px 0 18px 0; }
-
-    .panel {
-      background: var(--panel);
-      border-radius: var(--radius);
-      border: var(--stroke) solid var(--accent);
-      padding: 16px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 480px;
-      gap: 18px;
-      align-items: start;
-    }
+    .panel { background:var(--panel); border-radius:var(--radius); border:var(--stroke) solid var(--accent); padding:16px; }
+    .grid { display:grid; grid-template-columns: 1fr 480px; gap:18px; align-items:start; }
 
     label { display:block; font-size:10px; margin-bottom:8px; color:var(--white); }
 
@@ -56,47 +43,38 @@
       width:100%;
       text-align:left;
       cursor:pointer;
+      -webkit-appearance: none;
+      appearance: none;
     }
 
-    .fake-file {
-      display:flex;
-      align-items:center;
-      gap:12px;
-      justify-content:flex-start;
-      height:48px;
-      background: transparent;
+    /* Force dropdown list dark where possible */
+    select, option {
+      background: #0b0c10;
+      color: #FFFFFF;
     }
 
+    /* Fake file button (we use a label tied to input) */
+    .fake-file { display:flex; align-items:center; gap:12px; justify-content:flex-start; height:48px; background: transparent; }
     .fake-file svg { width:26px; height:26px; flex:0 0 26px; }
 
-    .submit-btn {
-      background: var(--accent);
-      color: #000;
-      border: 2px solid rgba(0,0,0,0.25);
-      padding: 10px;
-      border-radius: 8px;
-      cursor:pointer;
-      font-size:11px;
-    }
+    .submit-btn { background: var(--accent); color:#000; border:2px solid rgba(0,0,0,0.25); padding:10px; border-radius:8px; cursor:pointer; font-size:11px; }
 
     .meta { font-size:10px; color:var(--white); opacity:0.9; margin-top:6px; }
 
-    /* Canvas / crop area */
-    .canvas-wrap { background: #060607; border-radius: var(--radius); padding:12px; border: var(--stroke) solid var(--accent); display:flex; flex-direction:column; gap:10px; align-items:center; }
-    .canvas-box { width:100%; max-width:720px; background:#000; border-radius:8px; overflow:hidden; position:relative; aspect-ratio: 16 / 9; }
+    /* Canvas */
+    .canvas-wrap { background:#060607; border-radius:var(--radius); padding:12px; border:var(--stroke) solid var(--accent); display:flex; flex-direction:column; gap:10px; align-items:center; }
+    .canvas-box { width:100%; max-width:720px; background:#000; border-radius:8px; overflow:hidden; position:relative; aspect-ratio:16/9; }
     #mainCanvas { width:100%; height:100%; display:block; background:#000; }
 
     .preview-area { display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:6px; }
     #previewCanvas { width:320px; height:180px; border-radius:8px; border:2px solid rgba(255,255,255,0.06); background:#000; }
 
-    footer { text-align:center; margin-top:14px; font-size:10px; color:var(--white); }
-
-    /* hidden real input */
+    /* hide the real input */
     #fileInput { display:none; }
 
     @media (max-width:980px){
       .grid { grid-template-columns: 1fr; }
-      .canvas-wrap { order:-1 }
+      .canvas-wrap { order:-1; }
       #previewCanvas { width:240px; height:135px; }
     }
   </style>
@@ -104,15 +82,15 @@
 <body>
   <div class="wrap">
     <h1>LFTRACKER — Photos</h1>
-    <p class="lead">Upload photos of aircraft seen on LFTracker. Choose livery, pick the aircraft (ICAO stored), adjust a 16:9 crop and preview live.</p>
+    <p class="lead">Upload photos, choose aircraft and livery, adjust 16:9 crop (live preview).</p>
 
     <div class="panel grid">
       <!-- Left: controls -->
       <div class="controls">
         <label for="fileInput">Choose image</label>
 
-        <!-- fake windows-95 style file button -->
-        <div class="fake-file control" id="fileBtn" title="Browse image">
+        <!-- native label -> single native file picker trigger (fixes double prompt) -->
+        <label for="fileInput" class="fake-file control" id="fileLabel" title="Browse image">
           <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="rgb(255,170,0)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
             <rect x="6" y="12" width="52" height="36" rx="4" ry="4" fill="transparent"></rect>
             <rect x="10" y="16" width="44" height="12" rx="2" ry="2" fill="transparent"></rect>
@@ -120,7 +98,7 @@
             <rect x="36" y="34" width="10" height="8" rx="1" ry="1" fill="transparent"></rect>
           </svg>
           <span style="font-size:11px">Browse Image</span>
-        </div>
+        </label>
 
         <input id="fileInput" type="file" accept="image/*">
 
@@ -129,16 +107,12 @@
           <option value="__ALL__">— All Liveries —</option>
         </select>
 
-        <label for="planeSelect">Aircraft (display name; value = ICAO)</label>
+        <label for="planeSelect">Aircraft</label>
         <select id="planeSelect" class="control">
           <option value="">Select plane</option>
         </select>
 
-        <button id="submitBtn" class="submit-btn control">Submit (no backend)</button>
-
-        <div class="meta">
-          <div>Note: option values store ICAO codes. Preview updates live as you move/resize the 16:9 crop. Submit opens cropped result in new tab (demo).</div>
-        </div>
+        <button id="submitBtn" class="submit-btn control">Submit (demo)</button>
       </div>
 
       <!-- Right: canvas & preview -->
@@ -156,13 +130,11 @@
         </div>
       </div>
     </div>
-
-    <footer>© 2025 LFTracker — sfsperseverance.github.io</footer>
   </div>
 
   <script>
     /********************************************************
-     Data: aircraft list + liveries mapping (ICAO values stored)
+     Aircraft list (exact ones you requested)
     *********************************************************/
     const aircraftList = [
       {icao:'BA11', name:'BAC 1-11'},
@@ -180,7 +152,7 @@
     ];
 
     const liveries = {
-      'AzureJet': ['B735','B734','B733','B732','B731','CL60'],
+      'AzureJet': ['B735','B734','B733','B732','B731'],
       'Classic': ['BA11','L101','B731','B732'],
       'VIP': ['CL60','B735'],
       'Military': ['A10'],
@@ -193,16 +165,9 @@
       UI elements
     *********************************************************/
     const fileInput = document.getElementById('fileInput');
-    const fileBtn = document.getElementById('fileBtn');
     const liverySelect = document.getElementById('liverySelect');
     const planeSelect = document.getElementById('planeSelect');
     const submitBtn = document.getElementById('submitBtn');
-
-    // canvases & contexts
-    const mainCanvas = document.getElementById('mainCanvas');
-    const ctx = mainCanvas.getContext('2d', {alpha:false});
-    const previewCanvas = document.getElementById('previewCanvas');
-    const pctx = previewCanvas.getContext('2d', {alpha:false});
 
     // populate livery select
     Object.keys(liveries).forEach(key=>{
@@ -212,7 +177,6 @@
       liverySelect.appendChild(opt);
     });
 
-    // fill plane options with ability to filter by ICAO array
     function fillPlaneOptions(filterICAOs=null){
       planeSelect.innerHTML = '<option value="">Select plane</option>';
       const list = aircraftList.filter(a => !filterICAOs || filterICAOs.includes(a.icao));
@@ -231,21 +195,18 @@
       else fillPlaneOptions(liveries[val] || []);
     });
 
-    // wire fake button to real file input
-    fileBtn.addEventListener('click', ()=> fileInput.click());
-
     /********************************************************
-      Image + cropper logic
-      - Fit image to canvas preserving ratio and center
-      - Crop rectangle locked to 16:9
-      - Drag inside to move; resize from corners/edges
-      - Live preview (updates every render)
+      Canvas & crop logic (keeps the previous robust cropper)
     *********************************************************/
+    const mainCanvas = document.getElementById('mainCanvas');
+    const ctx = mainCanvas.getContext('2d', {alpha:false});
+    const previewCanvas = document.getElementById('previewCanvas');
+    const pctx = previewCanvas.getContext('2d', {alpha:false});
+
     let image = new Image();
     let imgLoaded = false;
     let drawArea = {x:0,y:0,w:0,h:0};
 
-    // responsive main canvas sizing: match container width & 16:9 height
     function resizeMainCanvas(){
       const box = mainCanvas.parentElement.getBoundingClientRect();
       mainCanvas.width = Math.floor(box.width);
@@ -255,11 +216,10 @@
     // crop rect
     let crop = {x:20, y:20, w: Math.floor(640*0.7), h: Math.floor((640*0.7)*9/16) };
     const minCropW = 80;
-    const handleSize = 20; // large handle for easy resizing
+    const handleSize = 20;
     let state = { dragging:false, resizing:false, resizeEdge:null, startX:0, startY:0, startCrop:null };
     let activePointerId = null;
 
-    // clear / draw helpers
     function clearMain(){ ctx.fillStyle = '#000'; ctx.fillRect(0,0,mainCanvas.width,mainCanvas.height); }
 
     function fitImageToCanvas(){
@@ -286,11 +246,9 @@
 
     function drawOverlayAndCrop(){
       if(!imgLoaded) return;
-      // apply dark overlay over drawArea
       ctx.fillStyle = 'rgba(0,0,0,0.35)';
       ctx.fillRect(drawArea.x, drawArea.y, drawArea.w, drawArea.h);
 
-      // compute intersection of crop and drawArea and redraw that slice from image
       const sx = Math.max(drawArea.x, crop.x);
       const sy = Math.max(drawArea.y, crop.y);
       const sw = Math.max(0, Math.min(drawArea.x + drawArea.w, crop.x + crop.w) - sx);
@@ -305,19 +263,17 @@
         ctx.drawImage(image, srcX, srcY, srcW, srcH, sx, sy, sw, sh);
       }
 
-      // draw crop border (accent)
+      // border and handles
       ctx.lineWidth = 3;
       ctx.strokeStyle = 'rgb(255,170,0)';
       ctx.strokeRect(crop.x + 0.5, crop.y + 0.5, crop.w - 1, crop.h - 1);
 
-      // draw handles
       const hs = handleSize;
       const handles = [
         {x: crop.x - hs/2, y: crop.y - hs/2, name:'nw'},
         {x: crop.x + crop.w - hs/2, y: crop.y - hs/2, name:'ne'},
         {x: crop.x - hs/2, y: crop.y + crop.h - hs/2, name:'sw'},
         {x: crop.x + crop.w - hs/2, y: crop.y + crop.h - hs/2, name:'se'},
-        // edges
         {x: crop.x + crop.w/2 - hs/2, y: crop.y - hs/2, name:'n'},
         {x: crop.x + crop.w/2 - hs/2, y: crop.y + crop.h - hs/2, name:'s'},
         {x: crop.x - hs/2, y: crop.y + crop.h/2 - hs/2, name:'w'},
@@ -335,7 +291,6 @@
       updatePreview();
     }
 
-    // pointer coordinate mapping
     function toCanvasCoords(evt){
       const rect = mainCanvas.getBoundingClientRect();
       const x = (evt.clientX - rect.left) * (mainCanvas.width / rect.width);
@@ -343,7 +298,6 @@
       return {x, y};
     }
 
-    // detect pointer hit (corners/edges/inside/none)
     function detectHit(x, y){
       const tol = Math.max(12, handleSize/2);
       const corners = {
@@ -356,17 +310,14 @@
         const p = corners[k];
         if(Math.abs(x - p.x) <= tol && Math.abs(y - p.y) <= tol) return {type:'corner', which:k};
       }
-      // edges
       if(y >= crop.y - tol && y <= crop.y + tol && x >= crop.x - tol && x <= crop.x + crop.w + tol) return {type:'edge', which:'n'};
       if(y >= crop.y + crop.h - tol && y <= crop.y + crop.h + tol && x >= crop.x - tol && x <= crop.x + crop.w + tol) return {type:'edge', which:'s'};
       if(x >= crop.x - tol && x <= crop.x + tol && y >= crop.y - tol && y <= crop.y + crop.h + tol) return {type:'edge', which:'w'};
       if(x >= crop.x + crop.w - tol && x <= crop.x + crop.w + tol && y >= crop.y - tol && y <= crop.y + crop.h + tol) return {type:'edge', which:'e'};
-      // inside?
       if(x > crop.x + tol && x < crop.x + crop.w - tol && y > crop.y + tol && y < crop.y + crop.h - tol) return {type:'inside'};
       return {type:'none'};
     }
 
-    // pointer events
     mainCanvas.addEventListener('pointerdown', (e) => {
       if(!imgLoaded) return;
       mainCanvas.setPointerCapture(e.pointerId);
@@ -384,7 +335,6 @@
       if(activePointerId !== null && e.pointerId !== activePointerId) return;
       const pos = toCanvasCoords(e);
       const hit = detectHit(pos.x, pos.y);
-      // change cursor for UX
       const cursor = (hit.type === 'corner') ? 'nwse-resize' : (hit.type === 'edge') ? 'ns-resize' : (hit.type === 'inside') ? 'move' : 'default';
       mainCanvas.style.cursor = cursor;
 
@@ -432,7 +382,7 @@
           newCrop.w = Math.round(newCrop.h * 16/9);
         }
 
-        // clamp to drawArea
+        // clamp
         if(newCrop.w > drawArea.w) newCrop.w = drawArea.w;
         if(newCrop.h > drawArea.h) newCrop.h = drawArea.h;
         if(newCrop.x < drawArea.x) newCrop.x = drawArea.x;
@@ -447,15 +397,13 @@
 
     mainCanvas.addEventListener('pointerup', (e) => {
       if(activePointerId !== null && e.pointerId !== activePointerId) return;
-      mainCanvas.releasePointerCapture(e.pointerId);
+      try{ mainCanvas.releasePointerCapture(e.pointerId); } catch(_) {}
       activePointerId = null;
-      state.dragging = false;
-      state.resizing = false;
-      state.resizeEdge = null;
+      state.dragging = false; state.resizing = false; state.resizeEdge = null;
     });
 
     /********************************************************
-      File input handling
+      File input handling (native label => single-click)
     *********************************************************/
     fileInput.addEventListener('change', () => {
       const f = fileInput.files[0];
@@ -464,37 +412,29 @@
       image = new Image();
       image.onload = () => {
         imgLoaded = true;
-        // resize main canvas to container and set initial crop
         resizeMainCanvas();
         crop.w = Math.floor(mainCanvas.width * 0.7);
         crop.h = Math.round(crop.w * 9/16);
         crop.x = Math.round((mainCanvas.width - crop.w)/2);
         crop.y = Math.round((mainCanvas.height - crop.h)/2);
         renderAll();
-        // revoke object url after draw
         URL.revokeObjectURL(url);
       };
       image.src = url;
     });
 
-    // clicking the fake button triggers file input
-    fileBtn.addEventListener('click', ()=> fileInput.click());
-
     /********************************************************
-      Live preview: map crop area back to original image and draw
+      Live preview: draw the cropped area to previewCanvas
     *********************************************************/
     function updatePreview(){
-      if(!imgLoaded) {
-        // clear preview
+      if(!imgLoaded){
         pctx.fillStyle = '#000';
         pctx.fillRect(0,0,previewCanvas.width, previewCanvas.height);
         return;
       }
-      // ensure preview resolution (keep reasonably large)
       previewCanvas.width = 1280;
       previewCanvas.height = Math.round(previewCanvas.width * 9/16);
 
-      // intersection of crop and drawArea
       const sx = Math.max(drawArea.x, crop.x);
       const sy = Math.max(drawArea.y, crop.y);
       const sw = Math.max(0, Math.min(drawArea.x + drawArea.w, crop.x + crop.w) - sx);
@@ -519,33 +459,28 @@
     }
 
     /********************************************************
-      Submit (demo): open cropped image in new tab (no backend)
+      Submit (demo): open in new tab
     *********************************************************/
     submitBtn.addEventListener('click', () => {
       const plane = planeSelect.value;
       const livery = liverySelect.value;
       if(!fileInput.files[0] || !plane || !livery){
-        // visual flash
         submitBtn.style.opacity = '0.5';
         setTimeout(()=> submitBtn.style.opacity = '1', 220);
         return;
       }
-      // produce dataURL from preview canvas
       const dataURL = previewCanvas.toDataURL('image/jpeg', 0.92);
       const win = window.open();
       if(win){
         win.document.write('<title>Cropped image</title><img src="'+dataURL+'" style="max-width:100%;display:block;margin:10px auto;">');
-      } else {
-        // fallback: do nothing
       }
     });
 
     /********************************************************
-      Initial layout & responsiveness
+      Init & responsiveness
     *********************************************************/
     function init(){
       resizeMainCanvas();
-      // center crop default
       crop.w = Math.floor(mainCanvas.width * 0.7);
       crop.h = Math.round(crop.w * 9/16);
       crop.x = Math.round((mainCanvas.width - crop.w)/2);
@@ -554,21 +489,16 @@
     }
 
     window.addEventListener('load', init);
-    window.addEventListener('resize', () => {
-      // attempt to keep crop centered and proportional
+    window.addEventListener('resize', ()=>{
       const prevW = mainCanvas.width;
       resizeMainCanvas();
-      // recalc based on new width
-      const newW = mainCanvas.width;
-      // scale crop proportionally by width ratio
-      const ratio = newW / (prevW || newW);
+      const ratio = mainCanvas.width / (prevW || mainCanvas.width);
       crop.w = Math.max(minCropW, Math.round(crop.w * ratio));
       crop.h = Math.round(crop.w * 9/16);
       crop.x = Math.round((mainCanvas.width - crop.w)/2);
       crop.y = Math.round((mainCanvas.height - crop.h)/2);
       renderAll();
     });
-
   </script>
 </body>
 </html>
