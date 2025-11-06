@@ -89,7 +89,7 @@
       <div class="controls">
         <label for="fileInput">Choose image</label>
 
-        <!-- native label -> single native file picker trigger (fixes double prompt) -->
+        <!-- native label -> single native file picker trigger -->
         <label for="fileInput" class="fake-file control" id="fileLabel" title="Browse image">
           <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="rgb(255,170,0)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
             <rect x="6" y="12" width="52" height="36" rx="4" ry="4" fill="transparent"></rect>
@@ -196,7 +196,7 @@
     });
 
     /********************************************************
-      Canvas & crop logic (keeps the previous robust cropper)
+      Canvas & crop logic (fixed side-resize behavior)
     *********************************************************/
     const mainCanvas = document.getElementById('mainCanvas');
     const ctx = mainCanvas.getContext('2d', {alpha:false});
@@ -213,7 +213,7 @@
       mainCanvas.height = Math.floor(box.width * 9/16);
     }
 
-    // crop rect
+    // crop rect (default)
     let crop = {x:20, y:20, w: Math.floor(640*0.7), h: Math.floor((640*0.7)*9/16) };
     const minCropW = 80;
     const handleSize = 20;
@@ -350,6 +350,7 @@
         const dx = pos.x - state.startX;
         const dy = pos.y - state.startY;
 
+        // Corners: behave as before
         if(which === 'se'){
           newCrop.w = Math.max(minCropW, Math.round(state.startCrop.w + dx));
           newCrop.h = Math.round(newCrop.w * 9/16);
@@ -366,23 +367,35 @@
           newCrop.h = Math.round(newCrop.w * 9/16);
           newCrop.x = state.startCrop.x + (state.startCrop.w - newCrop.w);
           newCrop.y = state.startCrop.y + (state.startCrop.h - newCrop.h);
+
+        // Sides: keep aspect ratio, adjust orthogonal position to stay centered
         } else if(which === 'e'){
+          // change width from right edge; keep vertical center
           newCrop.w = Math.max(minCropW, Math.round(state.startCrop.w + dx));
           newCrop.h = Math.round(newCrop.w * 9/16);
+          // center vertically relative to start
+          newCrop.y = Math.round(state.startCrop.y + (state.startCrop.h - newCrop.h)/2);
         } else if(which === 'w'){
+          // change width from left edge; adjust x to keep right edge fixed
           newCrop.w = Math.max(minCropW, Math.round(state.startCrop.w - dx));
           newCrop.h = Math.round(newCrop.w * 9/16);
           newCrop.x = state.startCrop.x + (state.startCrop.w - newCrop.w);
+          // center vertically
+          newCrop.y = Math.round(state.startCrop.y + (state.startCrop.h - newCrop.h)/2);
         } else if(which === 'n'){
+          // change height from top; keep horizontal center
           newCrop.h = Math.max(Math.round(minCropW * 9/16), Math.round(state.startCrop.h - dy));
           newCrop.w = Math.round(newCrop.h * 16/9);
           newCrop.y = state.startCrop.y + (state.startCrop.h - newCrop.h);
+          newCrop.x = Math.round(state.startCrop.x + (state.startCrop.w - newCrop.w)/2);
         } else if(which === 's'){
+          // change height from bottom; keep horizontal center
           newCrop.h = Math.max(Math.round(minCropW * 9/16), Math.round(state.startCrop.h + dy));
           newCrop.w = Math.round(newCrop.h * 16/9);
+          newCrop.x = Math.round(state.startCrop.x + (state.startCrop.w - newCrop.w)/2);
         }
 
-        // clamp
+        // clamp to drawArea boundaries
         if(newCrop.w > drawArea.w) newCrop.w = drawArea.w;
         if(newCrop.h > drawArea.h) newCrop.h = drawArea.h;
         if(newCrop.x < drawArea.x) newCrop.x = drawArea.x;
