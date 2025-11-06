@@ -26,13 +26,13 @@
     p.lead { color:var(--white); opacity:0.95; text-align:center; font-size:11px; margin:8px 0 18px 0; }
 
     .panel { background:var(--panel); border-radius:var(--radius); border:var(--stroke) solid var(--accent); padding:16px; }
-    .grid { display:grid; grid-template-columns: 1fr 480px; gap:18px; align-items:start; }
+    .grid { display:grid; grid-template-columns: 1fr 520px; gap:18px; align-items:start; }
 
     label { display:block; font-size:10px; margin-bottom:8px; color:var(--white); }
 
     /* Controls */
     .controls .control { width:100%; margin-bottom:12px; }
-    select, button, .fake-file {
+    select, input[type="text"], button, .fake-file {
       font-family: 'Press Start 2P', monospace;
       background: transparent;
       color: var(--white);
@@ -49,8 +49,8 @@
 
     /* Force dropdown list dark where possible */
     select, option {
-      background: #0b0c10;
-      color: #FFFFFF;
+      background: #0b0c10 !important;
+      color: #FFFFFF !important;
     }
 
     /* Fake file button (we use a label tied to input) */
@@ -63,7 +63,7 @@
 
     /* Canvas */
     .canvas-wrap { background:#060607; border-radius:var(--radius); padding:12px; border:var(--stroke) solid var(--accent); display:flex; flex-direction:column; gap:10px; align-items:center; }
-    .canvas-box { width:100%; max-width:720px; background:#000; border-radius:8px; overflow:hidden; position:relative; aspect-ratio:16/9; }
+    .canvas-box { width:100%; max-width:820px; background:#000; border-radius:8px; overflow:hidden; position:relative; aspect-ratio:16/9; }
     #mainCanvas { width:100%; height:100%; display:block; background:#000; }
 
     .preview-area { display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:6px; }
@@ -102,15 +102,14 @@
 
         <input id="fileInput" type="file" accept="image/*">
 
-        <label for="liverySelect">Livery</label>
-        <select id="liverySelect" class="control">
-          <option value="__ALL__">— All Liveries —</option>
-        </select>
-
         <label for="planeSelect">Aircraft</label>
-        <select id="planeSelect" class="control">
-          <option value="">Select plane</option>
-        </select>
+        <select id="planeSelect" class="control" aria-label="Aircraft"></select>
+
+        <label for="liverySelect">Livery</label>
+        <select id="liverySelect" class="control" aria-label="Livery"></select>
+
+        <label for="robloxId">Roblox user ID</label>
+        <input id="robloxId" type="text" placeholder="Enter your Roblox user ID" class="control" />
 
         <button id="submitBtn" class="submit-btn control">Submit (demo)</button>
       </div>
@@ -135,6 +134,7 @@
   <script>
     /********************************************************
      Aircraft list (exact ones you requested)
+     liveries: key => array of ICAO codes
     *********************************************************/
     const aircraftList = [
       {icao:'BA11', name:'BAC 1-11'},
@@ -157,7 +157,6 @@
       'VIP': ['CL60','B735'],
       'Military': ['A10'],
       'General Aviation': ['TBM7','CL60'],
-      'All': aircraftList.map(a => a.icao),
       'Special': ['MISC']
     };
 
@@ -165,38 +164,93 @@
       UI elements
     *********************************************************/
     const fileInput = document.getElementById('fileInput');
-    const liverySelect = document.getElementById('liverySelect');
     const planeSelect = document.getElementById('planeSelect');
+    const liverySelect = document.getElementById('liverySelect');
+    const robloxIdInput = document.getElementById('robloxId');
     const submitBtn = document.getElementById('submitBtn');
 
-    // populate livery select
-    Object.keys(liveries).forEach(key=>{
-      const opt = document.createElement('option');
-      opt.value = key;
-      opt.textContent = key;
-      liverySelect.appendChild(opt);
+    // helper maps for quick lookup
+    const icaoToAircraft = Object.fromEntries(aircraftList.map(a => [a.icao, a]));
+    // build livery -> icao lists already present
+
+    // Populate planeSelect with all aircraft (no empty option)
+    function populatePlanes(defaultICAO=null){
+      planeSelect.innerHTML = '';
+      aircraftList.forEach((a, i) => {
+        const opt = document.createElement('option');
+        opt.value = a.icao;
+        opt.textContent = `${a.name} (${a.icao})`;
+        planeSelect.appendChild(opt);
+      });
+      // set selection
+      if(defaultICAO && icaoToAircraft[defaultICAO]) planeSelect.value = defaultICAO;
+      else planeSelect.selectedIndex = 0;
+    }
+
+    // Get a list of livery names that include this ICAO
+    function liveriesForICAO(icao){
+      return Object.keys(liveries).filter(k => liveries[k].includes(icao));
+    }
+
+    // Populate liverySelect based on current plane ICAO; ensure at least one option
+    function populateLiveriesForPlane(icao, preferredLivery=null){
+      const options = liveriesForICAO(icao);
+      liverySelect.innerHTML = '';
+      // if there are zero liveries, we still need at least one: show 'Default'
+      const finalOptions = options.length ? options : ['Default'];
+      finalOptions.forEach((name) => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        liverySelect.appendChild(opt);
+      });
+      // select preferred if still present, else first
+      if(preferredLivery && finalOptions.includes(preferredLivery)){
+        liverySelect.value = preferredLivery;
+      } else {
+        liverySelect.selectedIndex = 0;
+      }
+    }
+
+    // When livery selected, ensure plane is valid for that livery; if not, pick first plane that matches
+    function ensurePlaneForLivery(preferredPlane=null){
+      const chosenLivery = liverySelect.value;
+      const aircraftForLivery = Object.keys(icaoToAircraft).filter(icao => (liveries[chosenLivery] || []).includes(icao));
+      if(!aircraftForLivery.length){
+        // nothing matches - keep current plane or pick first
+        if(preferredPlane && icaoToAircraft[preferredPlane]) planeSelect.value = preferredPlane;
+        else planeSelect.selectedIndex = 0;
+        return;
+      }
+      // if current plane is allowed keep it
+      if(aircraftForLivery.includes(planeSelect.value)) return;
+      // else pick first allowed plane
+      planeSelect.value = aircraftForLivery[0];
+      // update liveries list for the newly selected plane (this will keep chosen livery valid)
+      populateLiveriesForPlane(planeSelect.value, liverySelect.value);
+    }
+
+    // initial population: pick first plane and its liveries
+    populatePlanes();
+    populateLiveriesForPlane(planeSelect.value);
+
+    // Event: plane changed by user
+    planeSelect.addEventListener('change', (e) => {
+      const prevLivery = liverySelect.value;
+      populateLiveriesForPlane(planeSelect.value, prevLivery);
+      // if prevLivery not valid for new plane, populateLiveriesForPlane already selected first
     });
 
-    function fillPlaneOptions(filterICAOs=null){
-      planeSelect.innerHTML = '<option value="">Select plane</option>';
-      const list = aircraftList.filter(a => !filterICAOs || filterICAOs.includes(a.icao));
-      list.forEach(a=>{
-        const o = document.createElement('option');
-        o.value = a.icao;
-        o.textContent = a.name + ' (' + a.icao + ')';
-        planeSelect.appendChild(o);
-      });
-    }
-    fillPlaneOptions();
-
-    liverySelect.addEventListener('change', ()=>{
-      const val = liverySelect.value;
-      if(val === '__ALL__') fillPlaneOptions();
-      else fillPlaneOptions(liveries[val] || []);
+    // Event: livery changed by user
+    liverySelect.addEventListener('change', (e) => {
+      // Ensure current plane belongs to this livery; if not, pick first plane that supports it.
+      ensurePlaneForLivery();
+      // Also repopulate livery list for that (maybe redundant but keeps consistency)
+      populateLiveriesForPlane(planeSelect.value, liverySelect.value);
     });
 
     /********************************************************
-      Canvas & crop logic (cursor mapping fixed for sides)
+      Canvas & crop code (keeps the robust cropper)
     *********************************************************/
     const mainCanvas = document.getElementById('mainCanvas');
     const ctx = mainCanvas.getContext('2d', {alpha:false});
@@ -336,10 +390,9 @@
       const pos = toCanvasCoords(e);
       const hit = detectHit(pos.x, pos.y);
 
-      // Fixed cursor mapping:
+      // cursor mapping
       let cursor = 'default';
       if(hit.type === 'corner'){
-        // corners: differentiate NW/SE and NE/SW for diagonal cursors
         if(hit.which === 'nw' || hit.which === 'se') cursor = 'nwse-resize';
         else cursor = 'nesw-resize';
       } else if(hit.type === 'edge'){
@@ -347,8 +400,6 @@
         else if(hit.which === 'e' || hit.which === 'w') cursor = 'ew-resize';
       } else if(hit.type === 'inside'){
         cursor = 'move';
-      } else {
-        cursor = 'default';
       }
       mainCanvas.style.cursor = cursor;
 
@@ -480,12 +531,14 @@
     }
 
     /********************************************************
-      Submit (demo): open in new tab
+      Submit (demo): open in new tab (requires image, aircraft, livery, roblox id)
     *********************************************************/
     submitBtn.addEventListener('click', () => {
       const plane = planeSelect.value;
       const livery = liverySelect.value;
-      if(!fileInput.files[0] || !plane || !livery){
+      const robloxId = robloxIdInput.value.trim();
+      if(!fileInput.files[0] || !plane || !livery || !robloxId){
+        // visual feedback
         submitBtn.style.opacity = '0.5';
         setTimeout(()=> submitBtn.style.opacity = '1', 220);
         return;
@@ -493,22 +546,20 @@
       const dataURL = previewCanvas.toDataURL('image/jpeg', 0.92);
       const win = window.open();
       if(win){
-        win.document.write('<title>Cropped image</title><img src="'+dataURL+'" style="max-width:100%;display:block;margin:10px auto;">');
+        win.document.write('<title>Cropped image</title>');
+        win.document.write('<div style="font-family: monospace; padding:10px; background:#111; color:#fff;"><strong>Plane:</strong> '+plane+'<br><strong>Livery:</strong> '+livery+'<br><strong>Roblox ID:</strong> '+robloxId+'</div>');
+        win.document.write('<img src="'+dataURL+'" style="max-width:100%;display:block;margin:10px auto;">');
       }
     });
 
     /********************************************************
       Init & responsiveness
     *********************************************************/
-    function renderAll(){
-      clearMain();
-      if(!imgLoaded) return;
-      fitImageToCanvas();
-      drawOverlayAndCrop();
-      updatePreview();
-    }
-
     function init(){
+      // default selections: first plane and first livery that applies
+      populatePlanes();
+      const defaultPlane = planeSelect.value;
+      populateLiveriesForPlane(defaultPlane);
       resizeMainCanvas();
       crop.w = Math.floor(mainCanvas.width * 0.7);
       crop.h = Math.round(crop.w * 9/16);
