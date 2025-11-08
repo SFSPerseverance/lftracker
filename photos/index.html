@@ -185,7 +185,7 @@
     const SUPABASE_URL = 'https://qhffydtxzlwoxgllvtif.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoZmZ5ZHR4emx3b3hnbGx2dGlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1NzkwNjAsImV4cCI6MjA3ODE1NTA2MH0.CAacFj8c14KlGu0HJ_1Zjf6hVadaGd5hPJleH8zftIQ';
 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     /********************************************************
      Aircraft list & liveries (unchanged)
@@ -740,7 +740,7 @@
       uploadStatus.textContent = 'Creating public URL...';
 
       // 3) get public url
-      const { data: publicData } = supabase.storage.from('photos').getPublicUrl(path);
+      const { data: publicData } = supa.storage.from('photos').getPublicUrl(path);
       const publicUrl = publicData && publicData.publicUrl ? publicData.publicUrl : null;
 
       progressInner.style.width = '85%';
@@ -764,7 +764,7 @@
 
       if(rowErr){
         // attempt to cleanup uploaded file
-        try { await supabase.storage.from('photos').remove([path]); } catch(_) {}
+        try { await supa.storage.from('photos').remove([path]); } catch(_) {}
         progressBar.style.display = 'none';
         throw rowErr;
       }
