@@ -677,7 +677,7 @@
       const ts = new Date().toISOString().replace(/[:.]/g,'-');
       const ext = (filename.split('.').pop() || 'jpg').toLowerCase();
       const rand = Math.random().toString(36).slice(2,9);
-      return `photos/${ts}_${rand}.${ext}`;
+      return `images/${ts}_${rand}.${ext}`;
     }
 
     function computeCropJson(){
@@ -716,7 +716,7 @@
 
       // Upload to storage bucket
       const { data: uploadData, error: uploadErr } = await supabaseClient.storage
-        .from('photos')
+        .from('images')
         .upload(path, file, { 
           cacheControl: '3600', 
           upsert: false 
@@ -733,7 +733,7 @@
 
       // Get public URL
       const { data: publicData } = supabaseClient.storage
-        .from('photos')
+        .from('images')
         .getPublicUrl(path);
 
       const publicUrl = publicData?.publicUrl || null;
@@ -756,7 +756,7 @@
       };
 
       const { data: rowData, error: rowErr } = await supabaseClient
-        .from('photos')
+        .from('images')
         .insert([insertRow])
         .select()
         .single();
@@ -765,7 +765,7 @@
         console.error('Metadata insert error:', rowErr);
         // Try to cleanup uploaded file
         try { 
-          await supabaseClient.storage.from('photos').remove([path]); 
+          await supabaseClient.storage.from('images').remove([path]); 
         } catch(cleanupErr) {
           console.error('Cleanup error:', cleanupErr);
         }
