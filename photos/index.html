@@ -16,6 +16,8 @@
       --white: #FFFFFF;
       --radius: 10px;
       --stroke: 3px;
+      --invalid: #ff4d4f;
+      --valid: #4caf50;
     }
 
     /* Global */
@@ -53,6 +55,9 @@
       color: #FFFFFF !important;
     }
 
+    .inline-row { display:flex; gap:8px; align-items:center; }
+    .small-note { font-size:10px; opacity:0.9; color:var(--white); }
+
     /* Fake file button (we use a label tied to input) */
     .fake-file { display:flex; align-items:center; gap:12px; justify-content:flex-start; height:48px; background: transparent; }
     .fake-file svg { width:26px; height:26px; flex:0 0 26px; }
@@ -69,6 +74,21 @@
     .preview-area { display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:6px; }
     #previewCanvas { width:320px; height:180px; border-radius:8px; border:2px solid rgba(255,255,255,0.06); background:#000; }
 
+    /* validation badges */
+    .badge {
+      display:inline-block;
+      font-size:10px;
+      padding:6px 8px;
+      border-radius:6px;
+      color:#000;
+      background:var(--valid);
+      min-width:80px;
+      text-align:center;
+    }
+    .badge.invalid { background:var(--invalid); color:#fff; }
+
+    .helper { font-size:11px; color:#bbb; margin-top:6px; }
+
     /* hide the real input */
     #fileInput { display:none; }
 
@@ -82,7 +102,7 @@
 <body>
   <div class="wrap">
     <h1>LFTRACKER — Photos</h1>
-    <p class="lead">Upload photos, choose aircraft and livery, adjust 16:9 crop (live preview).</p>
+    <p class="lead">Upload photos, choose aircraft and livery, enter your Roblox ID (validated), and adjust a 16:9 crop (live preview).</p>
 
     <div class="panel grid">
       <!-- Left: controls -->
@@ -109,9 +129,13 @@
         <select id="liverySelect" class="control" aria-label="Livery"></select>
 
         <label for="robloxId">Roblox user ID</label>
-        <input id="robloxId" type="text" placeholder="Enter your Roblox user ID" class="control" />
+        <div class="inline-row">
+          <input id="robloxId" type="text" placeholder="Enter your Roblox user ID" class="control" style="flex:1" />
+          <div id="robloxBadge" style="flex:0 0 auto; margin-left:6px;"></div>
+        </div>
+        <div id="robloxHelper" class="helper">ID must be numeric. Validation via RoProxy.</div>
 
-        <button id="submitBtn" class="submit-btn control">Submit (demo)</button>
+        <button id="submitBtn" class="submit-btn control" disabled>Submit (demo)</button>
       </div>
 
       <!-- Right: canvas & preview -->
@@ -133,8 +157,7 @@
 
   <script>
     /********************************************************
-     Aircraft list (exact ones you requested)
-     liveries: key => array of ICAO codes
+     Aircraft list & liveries
     *********************************************************/
     const aircraftList = [
       {icao:'BA11', name:'BAC 1-11'},
@@ -167,90 +190,199 @@
     const planeSelect = document.getElementById('planeSelect');
     const liverySelect = document.getElementById('liverySelect');
     const robloxIdInput = document.getElementById('robloxId');
+    const robloxBadge = document.getElementById('robloxBadge');
+    const robloxHelper = document.getElementById('robloxHelper');
     const submitBtn = document.getElementById('submitBtn');
 
-    // helper maps for quick lookup
+    // helper maps
     const icaoToAircraft = Object.fromEntries(aircraftList.map(a => [a.icao, a]));
-    // build livery -> icao lists already present
 
-    // Populate planeSelect with all aircraft (no empty option)
+    // Populate plane select (no empty option)
     function populatePlanes(defaultICAO=null){
       planeSelect.innerHTML = '';
-      aircraftList.forEach((a, i) => {
+      aircraftList.forEach(a => {
         const opt = document.createElement('option');
         opt.value = a.icao;
         opt.textContent = `${a.name} (${a.icao})`;
         planeSelect.appendChild(opt);
       });
-      // set selection
       if(defaultICAO && icaoToAircraft[defaultICAO]) planeSelect.value = defaultICAO;
       else planeSelect.selectedIndex = 0;
     }
 
-    // Get a list of livery names that include this ICAO
     function liveriesForICAO(icao){
       return Object.keys(liveries).filter(k => liveries[k].includes(icao));
     }
 
-    // Populate liverySelect based on current plane ICAO; ensure at least one option
     function populateLiveriesForPlane(icao, preferredLivery=null){
       const options = liveriesForICAO(icao);
       liverySelect.innerHTML = '';
-      // if there are zero liveries, we still need at least one: show 'Default'
       const finalOptions = options.length ? options : ['Default'];
-      finalOptions.forEach((name) => {
+      finalOptions.forEach(name => {
         const opt = document.createElement('option');
         opt.value = name;
         opt.textContent = name;
         liverySelect.appendChild(opt);
       });
-      // select preferred if still present, else first
-      if(preferredLivery && finalOptions.includes(preferredLivery)){
-        liverySelect.value = preferredLivery;
-      } else {
-        liverySelect.selectedIndex = 0;
-      }
+      if(preferredLivery && finalOptions.includes(preferredLivery)) liverySelect.value = preferredLivery;
+      else liverySelect.selectedIndex = 0;
     }
 
-    // When livery selected, ensure plane is valid for that livery; if not, pick first plane that matches
     function ensurePlaneForLivery(preferredPlane=null){
       const chosenLivery = liverySelect.value;
       const aircraftForLivery = Object.keys(icaoToAircraft).filter(icao => (liveries[chosenLivery] || []).includes(icao));
       if(!aircraftForLivery.length){
-        // nothing matches - keep current plane or pick first
         if(preferredPlane && icaoToAircraft[preferredPlane]) planeSelect.value = preferredPlane;
         else planeSelect.selectedIndex = 0;
         return;
       }
-      // if current plane is allowed keep it
       if(aircraftForLivery.includes(planeSelect.value)) return;
-      // else pick first allowed plane
       planeSelect.value = aircraftForLivery[0];
-      // update liveries list for the newly selected plane (this will keep chosen livery valid)
       populateLiveriesForPlane(planeSelect.value, liverySelect.value);
     }
 
-    // initial population: pick first plane and its liveries
+    // initial population
     populatePlanes();
     populateLiveriesForPlane(planeSelect.value);
 
-    // Event: plane changed by user
-    planeSelect.addEventListener('change', (e) => {
-      const prevLivery = liverySelect.value;
-      populateLiveriesForPlane(planeSelect.value, prevLivery);
-      // if prevLivery not valid for new plane, populateLiveriesForPlane already selected first
+    planeSelect.addEventListener('change', () => {
+      const prev = liverySelect.value;
+      populateLiveriesForPlane(planeSelect.value, prev);
+      // keep submit enable state in sync
+      updateSubmitState();
     });
 
-    // Event: livery changed by user
-    liverySelect.addEventListener('change', (e) => {
-      // Ensure current plane belongs to this livery; if not, pick first plane that supports it.
+    liverySelect.addEventListener('change', () => {
       ensurePlaneForLivery();
-      // Also repopulate livery list for that (maybe redundant but keeps consistency)
       populateLiveriesForPlane(planeSelect.value, liverySelect.value);
+      updateSubmitState();
     });
 
     /********************************************************
-      Canvas & crop code (keeps the robust cropper)
+      Roblox ID validation via RoProxy
+      Endpoint used: https://users.roproxy.com/v1/users/{userId}
+      Behavior:
+        - numeric-only input
+        - debounce while typing
+        - on blur or debounce => fetch RoProxy
+        - success => show badge with username/displayName
+        - 404 or invalid => show invalid badge
+        - network error => show "validation failed"
+    *********************************************************/
+    let validateTimer = null;
+    let lastValidatedId = null;
+    let lastValidResult = null;
+
+    // helper: set badge
+    function setBadgeValid(name){
+      robloxBadge.innerHTML = '';
+      const span = document.createElement('div');
+      span.className = 'badge';
+      span.textContent = name;
+      robloxBadge.appendChild(span);
+    }
+    function setBadgeInvalid(msg){
+      robloxBadge.innerHTML = '';
+      const span = document.createElement('div');
+      span.className = 'badge invalid';
+      span.textContent = msg;
+      robloxBadge.appendChild(span);
+    }
+    function clearBadge(){
+      robloxBadge.innerHTML = '';
+    }
+
+    function isNumericId(s){ return /^\d+$/.test(s); }
+
+    // enable/disable submit depending on requirements
+    function updateSubmitState(){
+      const hasImage = !!fileInput.files[0];
+      const plane = planeSelect.value;
+      const livery = liverySelect.value;
+      const robloxOk = !!lastValidResult; // valid result stored on success
+      submitBtn.disabled = !(hasImage && plane && livery && robloxOk);
+    }
+
+    // validate function (calls roproxy)
+    async function validateRobloxId(id){
+      // basic checks
+      if(!id || !isNumericId(id)){
+        lastValidatedId = id;
+        lastValidResult = null;
+        setBadgeInvalid('Invalid ID');
+        updateSubmitState();
+        return;
+      }
+      // avoid refetching same id
+      if(lastValidatedId === id && lastValidResult) {
+        setBadgeValid(lastValidResult.displayName || lastValidResult.name || ('@' + lastValidResult.id));
+        updateSubmitState();
+        return;
+      }
+
+      // show "checking"
+      robloxBadge.innerHTML = '';
+      const checking = document.createElement('div');
+      checking.className = 'badge';
+      checking.style.background = 'transparent';
+      checking.style.color = 'var(--white)';
+      checking.style.border = '2px solid rgba(255,255,255,0.08)';
+      checking.textContent = 'Checking...';
+      robloxBadge.appendChild(checking);
+
+      const endpoint = `https://users.roproxy.com/v1/users/${encodeURIComponent(id)}`;
+      try {
+        const r = await fetch(endpoint, { method: 'GET' });
+        if(r.ok){
+          const data = await r.json();
+          // data typically contains "id", "name", "displayName"
+          lastValidatedId = id;
+          lastValidResult = data;
+          const display = data.displayName || data.name || ('@' + data.id);
+          setBadgeValid(display);
+          robloxHelper.textContent = 'Validated via RoProxy.';
+        } else if(r.status === 404){
+          lastValidatedId = id;
+          lastValidResult = null;
+          setBadgeInvalid('Not found');
+          robloxHelper.textContent = 'No Roblox user with that ID.';
+        } else {
+          lastValidatedId = id;
+          lastValidResult = null;
+          setBadgeInvalid('Validation failed');
+          robloxHelper.textContent = 'Validation failed — try again';
+        }
+      } catch (err) {
+        lastValidatedId = id;
+        lastValidResult = null;
+        setBadgeInvalid('Network error');
+        robloxHelper.textContent = 'Network error while validating — try again';
+      }
+      updateSubmitState();
+    }
+
+    // input: allow only digits while typing
+    robloxIdInput.addEventListener('input', (e) => {
+      const cleaned = (e.target.value || '').replace(/[^\d]/g,'');
+      if(cleaned !== e.target.value) e.target.value = cleaned;
+      // debounce validation
+      if(validateTimer) clearTimeout(validateTimer);
+      validateTimer = setTimeout(()=> validateRobloxId(cleaned), 600);
+      // temporarily mark invalid until validated
+      lastValidResult = null;
+      clearBadge();
+      robloxHelper.textContent = 'ID must be numeric. Validation via RoProxy.';
+      updateSubmitState();
+    });
+
+    robloxIdInput.addEventListener('blur', (e) => {
+      const id = (e.target.value || '').trim();
+      if(validateTimer) { clearTimeout(validateTimer); validateTimer = null; }
+      validateRobloxId(id);
+    });
+
+    /********************************************************
+      Canvas & cropper code (keeps the custom cropper)
     *********************************************************/
     const mainCanvas = document.getElementById('mainCanvas');
     const ctx = mainCanvas.getContext('2d', {alpha:false});
@@ -491,6 +623,7 @@
         crop.y = Math.round((mainCanvas.height - crop.h)/2);
         renderAll();
         URL.revokeObjectURL(url);
+        updateSubmitState();
       };
       image.src = url;
     });
@@ -531,14 +664,13 @@
     }
 
     /********************************************************
-      Submit (demo): open in new tab (requires image, aircraft, livery, roblox id)
+      Submit (demo): open in new tab (requires image, aircraft, livery, roblox id validated)
     *********************************************************/
     submitBtn.addEventListener('click', () => {
       const plane = planeSelect.value;
       const livery = liverySelect.value;
       const robloxId = robloxIdInput.value.trim();
-      if(!fileInput.files[0] || !plane || !livery || !robloxId){
-        // visual feedback
+      if(!fileInput.files[0] || !plane || !livery || !lastValidResult){
         submitBtn.style.opacity = '0.5';
         setTimeout(()=> submitBtn.style.opacity = '1', 220);
         return;
@@ -547,7 +679,7 @@
       const win = window.open();
       if(win){
         win.document.write('<title>Cropped image</title>');
-        win.document.write('<div style="font-family: monospace; padding:10px; background:#111; color:#fff;"><strong>Plane:</strong> '+plane+'<br><strong>Livery:</strong> '+livery+'<br><strong>Roblox ID:</strong> '+robloxId+'</div>');
+        win.document.write('<div style="font-family: monospace; padding:10px; background:#111; color:#fff;"><strong>Plane:</strong> '+plane+'<br><strong>Livery:</strong> '+livery+'<br><strong>Roblox ID:</strong> '+robloxId+'<br><strong>Roblox Name:</strong> '+(lastValidResult.displayName || lastValidResult.name || '')+'</div>');
         win.document.write('<img src="'+dataURL+'" style="max-width:100%;display:block;margin:10px auto;">');
       }
     });
@@ -556,16 +688,16 @@
       Init & responsiveness
     *********************************************************/
     function init(){
-      // default selections: first plane and first livery that applies
+      // default selections: first plane and its liveries
       populatePlanes();
-      const defaultPlane = planeSelect.value;
-      populateLiveriesForPlane(defaultPlane);
+      populateLiveriesForPlane(planeSelect.value);
       resizeMainCanvas();
       crop.w = Math.floor(mainCanvas.width * 0.7);
       crop.h = Math.round(crop.w * 9/16);
       crop.x = Math.round((mainCanvas.width - crop.w)/2);
       crop.y = Math.round((mainCanvas.height - crop.h)/2);
       renderAll();
+      updateSubmitState();
     }
 
     window.addEventListener('load', init);
@@ -578,6 +710,7 @@
       crop.x = Math.round((mainCanvas.width - crop.w)/2);
       crop.y = Math.round((mainCanvas.height - crop.h)/2);
       renderAll();
+      updateSubmitState();
     });
   </script>
 </body>
