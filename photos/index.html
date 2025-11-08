@@ -89,6 +89,21 @@
 
     .helper { font-size:11px; color:#bbb; margin-top:6px; }
 
+    /* upload progress */
+    .progress {
+      height: 10px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .progress > div {
+      height:100%;
+      width:0%;
+      background: var(--accent);
+      transition: width 0.12s linear;
+    }
+
     /* hide the real input */
     #fileInput { display:none; }
 
@@ -135,7 +150,10 @@
         </div>
         <div id="robloxHelper" class="helper">ID must be numeric. Validation via RoProxy.</div>
 
-        <button id="submitBtn" class="submit-btn control" disabled>Submit (demo)</button>
+        <button id="submitBtn" class="submit-btn control" disabled>Upload</button>
+
+        <div id="uploadStatus" class="helper" style="margin-top:8px"></div>
+        <div class="progress" style="display:none" id="progressBar"><div></div></div>
       </div>
 
       <!-- Right: canvas & preview -->
@@ -155,9 +173,22 @@
     </div>
   </div>
 
+  <!-- Supabase client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+
   <script>
+    /***********************
+     CONFIG — your Supabase project
+     You gave the URL & anon key — we use the anon key for client uploads.
+     Do NOT expose service_role key in client-side code.
+    ***********************/
+    const SUPABASE_URL = 'https://qhffydtxzlwoxgllvtif.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoZmZ5ZHR4emx3b3hnbGx2dGlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1NzkwNjAsImV4cCI6MjA3ODE1NTA2MH0.CAacFj8c14KlGu0HJ_1Zjf6hVadaGd5hPJleH8zftIQ';
+
+    const supabase = supabasejs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     /********************************************************
-     Aircraft list & liveries
+     Aircraft list & liveries (unchanged)
     *********************************************************/
     const aircraftList = [
       {icao:'BA11', name:'BAC 1-11'},
@@ -193,6 +224,9 @@
     const robloxBadge = document.getElementById('robloxBadge');
     const robloxHelper = document.getElementById('robloxHelper');
     const submitBtn = document.getElementById('submitBtn');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const progressBar = document.getElementById('progressBar');
+    const progressInner = progressBar.querySelector('div');
 
     // helper maps
     const icaoToAircraft = Object.fromEntries(aircraftList.map(a => [a.icao, a]));
@@ -248,7 +282,6 @@
     planeSelect.addEventListener('change', () => {
       const prev = liverySelect.value;
       populateLiveriesForPlane(planeSelect.value, prev);
-      // keep submit enable state in sync
       updateSubmitState();
     });
 
@@ -260,20 +293,11 @@
 
     /********************************************************
       Roblox ID validation via RoProxy
-      Endpoint used: https://users.roproxy.com/v1/users/{userId}
-      Behavior:
-        - numeric-only input
-        - debounce while typing
-        - on blur or debounce => fetch RoProxy
-        - success => show badge with username/displayName
-        - 404 or invalid => show invalid badge
-        - network error => show "validation failed"
     *********************************************************/
     let validateTimer = null;
     let lastValidatedId = null;
     let lastValidResult = null;
 
-    // helper: set badge
     function setBadgeValid(name){
       robloxBadge.innerHTML = '';
       const span = document.createElement('div');
@@ -288,24 +312,19 @@
       span.textContent = msg;
       robloxBadge.appendChild(span);
     }
-    function clearBadge(){
-      robloxBadge.innerHTML = '';
-    }
+    function clearBadge(){ robloxBadge.innerHTML = ''; }
 
     function isNumericId(s){ return /^\d+$/.test(s); }
 
-    // enable/disable submit depending on requirements
     function updateSubmitState(){
       const hasImage = !!fileInput.files[0];
       const plane = planeSelect.value;
       const livery = liverySelect.value;
-      const robloxOk = !!lastValidResult; // valid result stored on success
+      const robloxOk = !!lastValidResult;
       submitBtn.disabled = !(hasImage && plane && livery && robloxOk);
     }
 
-    // validate function (calls roproxy)
     async function validateRobloxId(id){
-      // basic checks
       if(!id || !isNumericId(id)){
         lastValidatedId = id;
         lastValidResult = null;
@@ -313,14 +332,13 @@
         updateSubmitState();
         return;
       }
-      // avoid refetching same id
       if(lastValidatedId === id && lastValidResult) {
         setBadgeValid(lastValidResult.displayName || lastValidResult.name || ('@' + lastValidResult.id));
         updateSubmitState();
         return;
       }
 
-      // show "checking"
+      // checking badge
       robloxBadge.innerHTML = '';
       const checking = document.createElement('div');
       checking.className = 'badge';
@@ -335,7 +353,6 @@
         const r = await fetch(endpoint, { method: 'GET' });
         if(r.ok){
           const data = await r.json();
-          // data typically contains "id", "name", "displayName"
           lastValidatedId = id;
           lastValidResult = data;
           const display = data.displayName || data.name || ('@' + data.id);
@@ -361,14 +378,12 @@
       updateSubmitState();
     }
 
-    // input: allow only digits while typing
+    // numeric-only typing + debounce
     robloxIdInput.addEventListener('input', (e) => {
       const cleaned = (e.target.value || '').replace(/[^\d]/g,'');
       if(cleaned !== e.target.value) e.target.value = cleaned;
-      // debounce validation
       if(validateTimer) clearTimeout(validateTimer);
       validateTimer = setTimeout(()=> validateRobloxId(cleaned), 600);
-      // temporarily mark invalid until validated
       lastValidResult = null;
       clearBadge();
       robloxHelper.textContent = 'ID must be numeric. Validation via RoProxy.';
@@ -382,7 +397,7 @@
     });
 
     /********************************************************
-      Canvas & cropper code (keeps the custom cropper)
+      Canvas & cropper code (custom cropper, live preview)
     *********************************************************/
     const mainCanvas = document.getElementById('mainCanvas');
     const ctx = mainCanvas.getContext('2d', {alpha:false});
@@ -664,23 +679,140 @@
     }
 
     /********************************************************
-      Submit (demo): open in new tab (requires image, aircraft, livery, roblox id validated)
+      SUPABASE UPLOAD + METADATA INSERT
     *********************************************************/
-    submitBtn.addEventListener('click', () => {
+    // Helper: build a unique storage path
+    function buildPath(filename){
+      const ts = new Date().toISOString().replace(/[:.]/g,'-');
+      const ext = (filename.split('.').pop() || 'jpg').toLowerCase();
+      const rand = Math.random().toString(36).slice(2,9);
+      return `photos/${ts}_${rand}.${ext}`;
+    }
+
+    // Compute crop in original image pixel coordinates (srcX,srcY,srcW,srcH) and include image original size
+    function computeCropJson(){
+      if(!imgLoaded) return null;
+      const sx = Math.max(drawArea.x, crop.x);
+      const sy = Math.max(drawArea.y, crop.y);
+      const sw = Math.max(0, Math.min(drawArea.x + drawArea.w, crop.x + crop.w) - sx);
+      const sh = Math.max(0, Math.min(drawArea.y + drawArea.h, crop.y + crop.h) - sy);
+      const scaleX = image.width / drawArea.w;
+      const scaleY = image.height / drawArea.h;
+      const srcX = Math.round((sx - drawArea.x) * scaleX);
+      const srcY = Math.round((sy - drawArea.y) * scaleY);
+      const srcW = Math.round(sw * scaleX);
+      const srcH = Math.round(sh * scaleY);
+      return {
+        srcX, srcY, srcW, srcH,
+        imageWidth: image.width,
+        imageHeight: image.height,
+        normalized: {
+          x: +(srcX / image.width).toFixed(6),
+          y: +(srcY / image.height).toFixed(6),
+          w: +(srcW / image.width).toFixed(6),
+          h: +(srcH / image.height).toFixed(6)
+        }
+      };
+    }
+
+    // Upload flow: upload file to storage, get public URL, insert metadata row
+    async function uploadPhotoAndMetadata(file, meta, onProgress = null){
+      // 1) path
+      const path = buildPath(file.name);
+
+      // 2) upload to bucket named 'photos'
+      // Supabase JS v2 streaming upload doesn't provide progress in-browser easily;
+      // We'll use upload() and fake progress bar updates for UX.
+      progressBar.style.display = 'block';
+      progressInner.style.width = '4%';
+      uploadStatus.textContent = 'Uploading file...';
+
+      const { data: uploadData, error: uploadErr } = await supabase.storage
+        .from('photos')
+        .upload(path, file, { cacheControl: '3600', upsert: false });
+
+      if(uploadErr){
+        progressBar.style.display = 'none';
+        throw uploadErr;
+      }
+
+      progressInner.style.width = '60%';
+      uploadStatus.textContent = 'Creating public URL...';
+
+      // 3) get public url
+      const { data: publicData } = supabase.storage.from('photos').getPublicUrl(path);
+      const publicUrl = publicData && publicData.publicUrl ? publicData.publicUrl : null;
+
+      progressInner.style.width = '85%';
+      uploadStatus.textContent = 'Saving metadata...';
+
+      // 4) insert metadata row into "photos" table
+      const insertRow = {
+        file_path: path,
+        public_url: publicUrl,
+        icao: meta.icao,
+        livery: meta.livery,
+        roblox_id: meta.robloxId,
+        crop_json: meta.crop || null
+      };
+
+      const { data: rowData, error: rowErr } = await supabase
+        .from('photos')
+        .insert([insertRow])
+        .select()
+        .single();
+
+      if(rowErr){
+        // attempt to cleanup uploaded file
+        try { await supabase.storage.from('photos').remove([path]); } catch(_) {}
+        progressBar.style.display = 'none';
+        throw rowErr;
+      }
+
+      progressInner.style.width = '100%';
+      uploadStatus.textContent = 'Upload complete!';
+      setTimeout(()=> { progressBar.style.display = 'none'; progressInner.style.width = '0%'; }, 900);
+
+      return { row: rowData, publicUrl };
+    }
+
+    /********************************************************
+      Wire submit button
+    *********************************************************/
+    submitBtn.addEventListener('click', async () => {
+      const file = fileInput.files[0];
       const plane = planeSelect.value;
       const livery = liverySelect.value;
       const robloxId = robloxIdInput.value.trim();
-      if(!fileInput.files[0] || !plane || !livery || !lastValidResult){
-        submitBtn.style.opacity = '0.5';
-        setTimeout(()=> submitBtn.style.opacity = '1', 220);
+
+      if(!file || !plane || !livery || !lastValidResult){
+        uploadStatus.textContent = 'Fill required fields and validate Roblox ID.';
         return;
       }
-      const dataURL = previewCanvas.toDataURL('image/jpeg', 0.92);
-      const win = window.open();
-      if(win){
-        win.document.write('<title>Cropped image</title>');
-        win.document.write('<div style="font-family: monospace; padding:10px; background:#111; color:#fff;"><strong>Plane:</strong> '+plane+'<br><strong>Livery:</strong> '+livery+'<br><strong>Roblox ID:</strong> '+robloxId+'<br><strong>Roblox Name:</strong> '+(lastValidResult.displayName || lastValidResult.name || '')+'</div>');
-        win.document.write('<img src="'+dataURL+'" style="max-width:100%;display:block;margin:10px auto;">');
+
+      // disable UI
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Uploading...';
+      uploadStatus.textContent = '';
+
+      const cropJson = computeCropJson();
+      const meta = { icao: plane, livery: livery, robloxId: robloxId, crop: cropJson };
+
+      try {
+        const res = await uploadPhotoAndMetadata(file, meta);
+        uploadStatus.innerHTML = `Uploaded — <a href="${res.publicUrl}" target="_blank" style="color:var(--accent)">view image</a>`;
+        // reset small bits
+        submitBtn.textContent = 'Upload';
+        // optionally clear file input
+        // fileInput.value = '';
+        updateSubmitState();
+      } catch (err) {
+        console.error('Upload error', err);
+        uploadStatus.textContent = 'Upload failed: ' + (err.message || JSON.stringify(err));
+        submitBtn.textContent = 'Upload';
+        updateSubmitState();
+      } finally {
+        submitBtn.disabled = false;
       }
     });
 
@@ -688,7 +820,6 @@
       Init & responsiveness
     *********************************************************/
     function init(){
-      // default selections: first plane and its liveries
       populatePlanes();
       populateLiveriesForPlane(planeSelect.value);
       resizeMainCanvas();
