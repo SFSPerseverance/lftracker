@@ -174,7 +174,7 @@
   </div>
 
   <!-- Supabase client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 
   <script>
     /***********************
@@ -183,18 +183,8 @@
     const SUPABASE_URL = 'https://qhffydtxzlwoxgllvtif.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoZmZ5ZHR4emx3b3hnbGx2dGlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1NzkwNjAsImV4cCI6MjA3ODE1NTA2MH0.CAacFj8c14KlGu0HJ_1Zjf6hVadaGd5hPJleH8zftIQ';
 
-    // Wait for Supabase to load, then initialize
-    let supabase;
-    
-    function initSupabase() {
-      if (typeof window.supabase === 'undefined') {
-        console.error('Supabase library not loaded');
-        uploadStatus.textContent = 'Error: Supabase library failed to load';
-        return false;
-      }
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      return true;
-    }
+    // Initialize Supabase client (rename to avoid conflict with global supabase object)
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     /********************************************************
      Aircraft list & liveries
@@ -716,6 +706,8 @@
     }
 
     async function uploadPhotoAndMetadata(file, meta){
+      console.log('Starting upload, supabase client:', supabaseClient);
+      
       const path = buildPath(file.name);
 
       progressBar.style.display = 'block';
@@ -723,7 +715,7 @@
       uploadStatus.textContent = 'Uploading file...';
 
       // Upload to storage bucket
-      const { data: uploadData, error: uploadErr } = await supabase.storage
+      const { data: uploadData, error: uploadErr } = await supabaseClient.storage
         .from('photos')
         .upload(path, file, { 
           cacheControl: '3600', 
@@ -740,7 +732,7 @@
       uploadStatus.textContent = 'Getting public URL...';
 
       // Get public URL
-      const { data: publicData } = supabase.storage
+      const { data: publicData } = supabaseClient.storage
         .from('photos')
         .getPublicUrl(path);
 
@@ -763,7 +755,7 @@
         crop_json: meta.crop || null
       };
 
-      const { data: rowData, error: rowErr } = await supabase
+      const { data: rowData, error: rowErr } = await supabaseClient
         .from('photos')
         .insert([insertRow])
         .select()
@@ -773,7 +765,7 @@
         console.error('Metadata insert error:', rowErr);
         // Try to cleanup uploaded file
         try { 
-          await supabase.storage.from('photos').remove([path]); 
+          await supabaseClient.storage.from('photos').remove([path]); 
         } catch(cleanupErr) {
           console.error('Cleanup error:', cleanupErr);
         }
@@ -836,6 +828,9 @@
       Init & responsiveness
     *********************************************************/
     function init(){
+      // Supabase should already be initialized at script load
+      console.log('Supabase client:', supabaseClient);
+      
       populatePlanes();
       populateLiveriesForPlane(planeSelect.value);
       resizeMainCanvas();
