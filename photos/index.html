@@ -43,7 +43,7 @@
       width: 100%;
       height: 100%;
       background: url('../assets/background.png') center/cover no-repeat;
-       background-size: cover;
+      background-size: cover;
       z-index: 0;
     }
 
@@ -214,7 +214,11 @@
       background: #000;
     }
 
-    #mainCanvas.empty { opacity: 0.6; transition: opacity 160ms ease; }
+    #mainCanvas.empty {
+      background: rgba(0, 0, 0, 0.6);
+      /* semi-transparent instead of just opacity */
+      transition: background 160ms ease;
+    }
 
     #robloxId {
       cursor: text;
@@ -239,7 +243,8 @@
     }
 
     #previewCanvas.empty {
-      opacity: 0.6;           /* semi-transparent */
+      opacity: 0.6;
+      /* semi-transparent */
       transition: opacity 160ms ease;
     }
 
@@ -587,15 +592,15 @@
     let activePointerId = null;
 
     function clearMain() {
-  // If there's no image, just clear so page background shows through.
-  if (!imgLoaded) {
-    ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-    return;
-  }
-  // If you want an opaque black backdrop behind loaded images, keep this:
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
-}
+      if (!imgLoaded) {
+        mainCanvas.classList.add('empty'); // add semi-transparent background
+        ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+        return;
+      }
+      mainCanvas.classList.remove('empty'); // remove when image is loaded
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
+    }
 
     function fitImageToCanvas() {
       if (!imgLoaded) return;
@@ -657,17 +662,13 @@
       handles.forEach(h => ctx.fillRect(h.x, h.y, hs, hs));
     }
 
-   function renderAll() {
-  // Toggle dim when no image is loaded
-  if (!imgLoaded) mainCanvas.classList.add('empty');
-  else mainCanvas.classList.remove('empty');
-
-  clearMain();
-  if (!imgLoaded) return;
-  fitImageToCanvas();
-  drawOverlayAndCrop();
-  updatePreview();
-}
+    function renderAll() {
+      clearMain();
+      if (!imgLoaded) return;
+      fitImageToCanvas();
+      drawOverlayAndCrop();
+      updatePreview();
+    }
 
     function toCanvasCoords(evt) {
       const rect = mainCanvas.getBoundingClientRect();
@@ -814,44 +815,44 @@
     });
 
     function updatePreview() {
-  if (!imgLoaded) {
-    // Make the canvas transparent so the CSS background shows
-    previewCanvas.width = 1280;
-    previewCanvas.height = Math.round(previewCanvas.width * 9 / 16);
-    pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+      if (!imgLoaded) {
+        // Make the canvas transparent so the CSS background shows
+        previewCanvas.width = 1280;
+        previewCanvas.height = Math.round(previewCanvas.width * 9 / 16);
+        pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
 
-    // Add the "empty" class to dim the preview
-    previewCanvas.classList.add('empty');
-    return;
-  }
+        // Add the "empty" class to dim the preview
+        previewCanvas.classList.add('empty');
+        return;
+      }
 
-  // Remove dim when we have an image
-  previewCanvas.classList.remove('empty');
+      // Remove dim when we have an image
+      previewCanvas.classList.remove('empty');
 
-  previewCanvas.width = 1280;
-  previewCanvas.height = Math.round(previewCanvas.width * 9 / 16);
+      previewCanvas.width = 1280;
+      previewCanvas.height = Math.round(previewCanvas.width * 9 / 16);
 
-  // existing draw logic...
-  const sx = Math.max(drawArea.x, crop.x);
-  const sy = Math.max(drawArea.y, crop.y);
-  const sw = Math.max(0, Math.min(drawArea.x + drawArea.w, crop.x + crop.w) - sx);
-  const sh = Math.max(0, Math.min(drawArea.y + drawArea.h, crop.y + crop.h) - sy);
+      // existing draw logic...
+      const sx = Math.max(drawArea.x, crop.x);
+      const sy = Math.max(drawArea.y, crop.y);
+      const sw = Math.max(0, Math.min(drawArea.x + drawArea.w, crop.x + crop.w) - sx);
+      const sh = Math.max(0, Math.min(drawArea.y + drawArea.h, crop.y + crop.h) - sy);
 
-  if (sw <= 0 || sh <= 0) {
-    pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
-    return;
-  }
+      if (sw <= 0 || sh <= 0) {
+        pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+        return;
+      }
 
-  const scaleX = image.width / drawArea.w;
-  const scaleY = image.height / drawArea.h;
-  const srcX = (sx - drawArea.x) * scaleX;
-  const srcY = (sy - drawArea.y) * scaleY;
-  const srcW = sw * scaleX;
-  const srcH = sh * scaleY;
+      const scaleX = image.width / drawArea.w;
+      const scaleY = image.height / drawArea.h;
+      const srcX = (sx - drawArea.x) * scaleX;
+      const srcY = (sy - drawArea.y) * scaleY;
+      const srcW = sw * scaleX;
+      const srcH = sh * scaleY;
 
-  pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
-  pctx.drawImage(image, srcX, srcY, srcW, srcH, 0, 0, previewCanvas.width, previewCanvas.height);
-}
+      pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+      pctx.drawImage(image, srcX, srcY, srcW, srcH, 0, 0, previewCanvas.width, previewCanvas.height);
+    }
 
     function buildPath(filename) {
       const ts = new Date().toISOString().replace(/[:.]/g, '-');
