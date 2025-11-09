@@ -214,6 +214,8 @@
       background: #000;
     }
 
+    #mainCanvas.empty { opacity: 0.6; transition: opacity 160ms ease; }
+
     .preview-area {
       display: flex;
       gap: 12px;
@@ -560,7 +562,7 @@
     });
 
     const mainCanvas = document.getElementById('mainCanvas');
-    const ctx = mainCanvas.getContext('2d', { alpha: false });
+    const ctx = mainCanvas.getContext('2d', { alpha: true });
     const previewCanvas = document.getElementById('previewCanvas');
     const pctx = previewCanvas.getContext('2d', { alpha: true });
 
@@ -580,7 +582,16 @@
     let state = { dragging: false, resizing: false, resizeEdge: null, startX: 0, startY: 0, startCrop: null };
     let activePointerId = null;
 
-    function clearMain() { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height); }
+    function clearMain() {
+  // If there's no image, just clear so page background shows through.
+  if (!imgLoaded) {
+    ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+    return;
+  }
+  // If you want an opaque black backdrop behind loaded images, keep this:
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
+}
 
     function fitImageToCanvas() {
       if (!imgLoaded) return;
@@ -642,13 +653,17 @@
       handles.forEach(h => ctx.fillRect(h.x, h.y, hs, hs));
     }
 
-    function renderAll() {
-      clearMain();
-      if (!imgLoaded) return;
-      fitImageToCanvas();
-      drawOverlayAndCrop();
-      updatePreview();
-    }
+   function renderAll() {
+  // Toggle dim when no image is loaded
+  if (!imgLoaded) mainCanvas.classList.add('empty');
+  else mainCanvas.classList.remove('empty');
+
+  clearMain();
+  if (!imgLoaded) return;
+  fitImageToCanvas();
+  drawOverlayAndCrop();
+  updatePreview();
+}
 
     function toCanvasCoords(evt) {
       const rect = mainCanvas.getBoundingClientRect();
