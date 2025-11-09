@@ -93,7 +93,7 @@
       font-size: 10px;
       margin-bottom: 8px;
       color: var(--white);
-      -webkit-text-stroke: 0.5px #000;
+      -webkit-text-stroke: 1px #000;
       paint-order: stroke fill;
     }
 
@@ -230,6 +230,11 @@
       border: var(--stroke) solid var(--accent);
       background: linear-gradient(90deg, rgba(255, 170, 0, 0.1) 0%, rgba(156, 112, 0, 0.1) 15%, rgba(156, 112, 0, 0.1) 85%, rgba(255, 170, 0, 0.1) 100%), rgba(26, 26, 26, 0.7);
       background-blend-mode: normal;
+    }
+
+    #previewCanvas.empty {
+      opacity: 0.6;           /* semi-transparent */
+      transition: opacity 160ms ease;
     }
 
     /* validation badges */
@@ -557,7 +562,7 @@
     const mainCanvas = document.getElementById('mainCanvas');
     const ctx = mainCanvas.getContext('2d', { alpha: false });
     const previewCanvas = document.getElementById('previewCanvas');
-    const pctx = previewCanvas.getContext('2d', { alpha: false });
+    const pctx = previewCanvas.getContext('2d', { alpha: true });
 
     let image = new Image();
     let imgLoaded = false;
@@ -790,36 +795,44 @@
     });
 
     function updatePreview() {
-      if (!imgLoaded) {
-        pctx.fillStyle = '#000';
-        pctx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
-        return;
-      }
-      previewCanvas.width = 1280;
-      previewCanvas.height = Math.round(previewCanvas.width * 9 / 16);
+  if (!imgLoaded) {
+    // Make the canvas transparent so the CSS background shows
+    previewCanvas.width = 1280;
+    previewCanvas.height = Math.round(previewCanvas.width * 9 / 16);
+    pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
 
-      const sx = Math.max(drawArea.x, crop.x);
-      const sy = Math.max(drawArea.y, crop.y);
-      const sw = Math.max(0, Math.min(drawArea.x + drawArea.w, crop.x + crop.w) - sx);
-      const sh = Math.max(0, Math.min(drawArea.y + drawArea.h, crop.y + crop.h) - sy);
+    // Add the "empty" class to dim the preview
+    previewCanvas.classList.add('empty');
+    return;
+  }
 
-      if (sw <= 0 || sh <= 0) {
-        pctx.fillStyle = '#000';
-        pctx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
-        return;
-      }
+  // Remove dim when we have an image
+  previewCanvas.classList.remove('empty');
 
-      const scaleX = image.width / drawArea.w;
-      const scaleY = image.height / drawArea.h;
-      const srcX = (sx - drawArea.x) * scaleX;
-      const srcY = (sy - drawArea.y) * scaleY;
-      const srcW = sw * scaleX;
-      const srcH = sh * scaleY;
+  previewCanvas.width = 1280;
+  previewCanvas.height = Math.round(previewCanvas.width * 9 / 16);
 
-      pctx.fillStyle = '#000';
-      pctx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
-      pctx.drawImage(image, srcX, srcY, srcW, srcH, 0, 0, previewCanvas.width, previewCanvas.height);
-    }
+  // existing draw logic...
+  const sx = Math.max(drawArea.x, crop.x);
+  const sy = Math.max(drawArea.y, crop.y);
+  const sw = Math.max(0, Math.min(drawArea.x + drawArea.w, crop.x + crop.w) - sx);
+  const sh = Math.max(0, Math.min(drawArea.y + drawArea.h, crop.y + crop.h) - sy);
+
+  if (sw <= 0 || sh <= 0) {
+    pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+    return;
+  }
+
+  const scaleX = image.width / drawArea.w;
+  const scaleY = image.height / drawArea.h;
+  const srcX = (sx - drawArea.x) * scaleX;
+  const srcY = (sy - drawArea.y) * scaleY;
+  const srcW = sw * scaleX;
+  const srcH = sh * scaleY;
+
+  pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+  pctx.drawImage(image, srcX, srcY, srcW, srcH, 0, 0, previewCanvas.width, previewCanvas.height);
+}
 
     function buildPath(filename) {
       const ts = new Date().toISOString().replace(/[:.]/g, '-');
