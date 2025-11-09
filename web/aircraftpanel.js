@@ -305,7 +305,8 @@ window.showAircraftDetails = async function (aircraft) {
   const rest = (aircraft.airframe || '') + (aircraft.subtype || '');
 
   const airlineEl = document.getElementById('aircraft-airline');
-  const airline = callsignToAirline[aircraft.callsign] || 'Unknown Airline';
+  const baseCallsign = aircraft.callsign.split('-')[0].toUpperCase();
+  const airline = callsignToAirline[baseCallsign] || 'Unknown Airline';
   const prefix = 'Operated by: ';
 
   typeEl.innerHTML = `
