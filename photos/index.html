@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>LFTRACKER — Photos</title>
+  <title>LFTracker Aircraft Photos</title>
 
   <!-- Press Start 2P -->
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -22,15 +22,45 @@
 
     /* Global */
     * { box-sizing: border-box; font-family: 'Press Start 2P', monospace; color: var(--white); }
-    html,body { height:100%; margin:0; background: var(--bg); }
+    html,body { 
+      height:100%; 
+      margin:0; 
+      background: var(--bg) url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&q=80') center/cover no-repeat fixed;
+    }
     .wrap { max-width:1000px; margin:28px auto; padding:18px; }
-    h1 { color: var(--accent); margin:0 0 8px; font-size:18px; text-align:center; }
-    p.lead { color:var(--white); opacity:0.95; text-align:center; font-size:11px; margin:8px 0 18px 0; }
+    h1 { 
+      color: var(--accent); 
+      margin:0 0 8px; 
+      font-size:18px; 
+      text-align:center;
+      text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+    }
+    p.lead { 
+      color:var(--white); 
+      text-align:center; 
+      font-size:11px; 
+      margin:8px 0 18px 0;
+      text-shadow: 1px 1px 2px #000;
+    }
 
-    .panel { background:var(--panel); border-radius:var(--radius); border:var(--stroke) solid var(--accent); padding:16px; }
+    .panel { 
+      background: linear-gradient(90deg, rgba(255,170,0,0.1) 0%, rgba(156, 112, 0,0.1) 15%, rgba(156, 112, 0,0.1) 85%,rgba(255,170,0,0.1) 100%), rgba(26, 26, 26,0.7);
+      background-blend-mode: normal;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius:var(--radius); 
+      border:var(--stroke) solid var(--accent); 
+      padding:16px; 
+    }
     .grid { display:grid; grid-template-columns: 1fr 520px; gap:18px; align-items:start; }
 
-    label { display:block; font-size:10px; margin-bottom:8px; color:var(--white); }
+    label { 
+      display:block; 
+      font-size:10px; 
+      margin-bottom:8px; 
+      color:var(--white);
+      text-shadow: 1px 1px 2px #000;
+    }
 
     /* Controls */
     .controls .control { width:100%; margin-bottom:12px; }
@@ -59,15 +89,55 @@
     .small-note { font-size:10px; opacity:0.9; color:var(--white); }
 
     /* Fake file button (we use a label tied to input) */
-    .fake-file { display:flex; align-items:center; gap:12px; justify-content:flex-start; height:48px; background: transparent; }
-    .fake-file svg { width:26px; height:26px; flex:0 0 26px; }
+    .fake-file { 
+      display:flex; 
+      align-items:center; 
+      gap:12px; 
+      justify-content:flex-start; 
+      height:48px; 
+      background: transparent; 
+    }
+    .fake-file svg { 
+      width:24px; 
+      height:24px; 
+      flex:0 0 24px; 
+    }
 
-    .submit-btn { background: var(--accent); color:#000; border:2px solid rgba(0,0,0,0.25); padding:10px; border-radius:8px; cursor:pointer; font-size:11px; }
+    .submit-btn { 
+      background: var(--accent); 
+      color:#fff !important; 
+      border:2px solid rgba(0,0,0,0.25); 
+      padding:10px; 
+      border-radius:8px; 
+      cursor:pointer; 
+      font-size:11px;
+      text-shadow: 
+        -1px -1px 0 #000,  
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
     .meta { font-size:10px; color:var(--white); opacity:0.9; margin-top:6px; }
 
     /* Canvas */
-    .canvas-wrap { background:#060607; border-radius:var(--radius); padding:12px; border:var(--stroke) solid var(--accent); display:flex; flex-direction:column; gap:10px; align-items:center; }
+    .canvas-wrap { 
+      background: linear-gradient(90deg, rgba(255,170,0,0.1) 0%, rgba(156, 112, 0,0.1) 15%, rgba(156, 112, 0,0.1) 85%,rgba(255,170,0,0.1) 100%), rgba(26, 26, 26,0.7);
+      background-blend-mode: normal;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius:var(--radius); 
+      padding:12px; 
+      border:var(--stroke) solid var(--accent); 
+      display:flex; 
+      flex-direction:column; 
+      gap:10px; 
+      align-items:center; 
+    }
     .canvas-box { width:100%; max-width:820px; background:#000; border-radius:8px; overflow:hidden; position:relative; aspect-ratio:16/9; }
     #mainCanvas { width:100%; height:100%; display:block; background:#000; }
 
@@ -87,7 +157,7 @@
     }
     .badge.invalid { background:var(--invalid); color:#fff; }
 
-    .helper { font-size:11px; color:#bbb; margin-top:6px; }
+    .helper { font-size:11px; color:#bbb; margin-top:6px; text-shadow: 1px 1px 2px #000; }
 
     /* upload progress */
     .progress {
@@ -116,8 +186,8 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>LFTRACKER — Photos</h1>
-    <p class="lead">Upload photos, choose aircraft and livery, enter your Roblox ID (validated), and adjust a 16:9 crop (live preview).</p>
+    <h1>LFTracker Photo Upload</h1>
+    <p class="lead">Upload your photos that you've captured here to be displayed in LFTracker!</p>
 
     <div class="panel grid">
       <!-- Left: controls -->
@@ -126,11 +196,10 @@
 
         <!-- native label -> single native file picker trigger -->
         <label for="fileInput" class="fake-file control" id="fileLabel" title="Browse image">
-          <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="rgb(255,170,0)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
-            <rect x="6" y="12" width="52" height="36" rx="4" ry="4" fill="transparent"></rect>
-            <rect x="10" y="16" width="44" height="12" rx="2" ry="2" fill="transparent"></rect>
-            <rect x="18" y="34" width="10" height="8" rx="1" ry="1" fill="transparent"></rect>
-            <rect x="36" y="34" width="10" height="8" rx="1" ry="1" fill="transparent"></rect>
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="rgb(255,170,0)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
           </svg>
           <span style="font-size:11px">Browse Image</span>
         </label>
@@ -148,7 +217,6 @@
           <input id="robloxId" type="text" placeholder="Enter your Roblox user ID" class="control" style="flex:1" />
           <div id="robloxBadge" style="flex:0 0 auto; margin-left:6px;"></div>
         </div>
-        <div id="robloxHelper" class="helper">ID must be numeric. Validation via RoProxy.</div>
 
         <button id="submitBtn" class="submit-btn control" disabled>Upload</button>
 
@@ -158,14 +226,14 @@
 
       <!-- Right: canvas & preview -->
       <div class="canvas-wrap">
-        <label>Image / Crop Area</label>
+        <label>Image</label>
         <div class="canvas-box">
           <canvas id="mainCanvas"></canvas>
         </div>
 
         <div class="preview-area">
           <div>
-            <div style="font-size:10px; margin-bottom:6px;">Cropped preview (live)</div>
+            <div style="font-size:10px; margin-bottom:6px; text-shadow: 1px 1px 2px #000;">Preview</div>
             <canvas id="previewCanvas" width="1280" height="720"></canvas>
           </div>
         </div>
@@ -177,18 +245,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 
   <script>
-    /***********************
-     CONFIG — your Supabase project
-    ***********************/
     const SUPABASE_URL = 'https://qhffydtxzlwoxgllvtif.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoZmZ5ZHR4emx3b3hnbGx2dGlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1NzkwNjAsImV4cCI6MjA3ODE1NTA2MH0.CAacFj8c14KlGu0HJ_1Zjf6hVadaGd5hPJleH8zftIQ';
-
-    // Initialize Supabase client (rename to avoid conflict with global supabase object)
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    /********************************************************
-     Aircraft list & liveries
-    *********************************************************/
     const aircraftList = [
       {icao:'BA11', name:'BAC 1-11'},
       {icao:'B731', name:'Boeing 737-100'},
@@ -206,24 +266,18 @@
 
     const liveries = {"DRAGONAIRTHEOTHERONE":["L101"],"MALÉV":["B732"],"RCAF":["CL60"],"HAPAG-LLOYD":["B734","B73D"],"ZBRANIFFLIGHTBLUE":["BA11"],"BRITISH":["B734"],"KLM":["B734"],"AIRFLORIDA X SINGAPORE":["B732"],"MALAYSIAN":["B734"],"RYANAIR":["BA11","B732"],"SUBSNAIL":["BA11"],"ZBRANIFFORANGE":["BA11"],"ROYALCANADA":["L101"],"BAHAMASAIR":["BA11"],"PEOPLESEXPRESS":["B731"],"DELTA":["L101"],"EASTERN":["L101"],"INDIAN":["B732"],"SUN":["B732"],"BRITISHRAF":["L101"],"GENERIC":["BA11","B731","B732","B734","B735","A10","CL60","B73D","L101","TBM7","Tester"],"PAN AM":["B732"],"N997JM":["TBM7"],"ZBRANIFFYELLOWGREENISH":["BA11"],"N781TM":["TBM7"],"N700CS":["TBM7"],"DUBAI":["BA11"],"TAG":["CL60"],"N700VJ":["TBM7"],"ZBRANIFFDARKORANGE":["BA11"],"PR-TUS":["TBM7"],"ANSETT":["B731"],"PIEDMONT2":["B734"],"ZBRANIFFDARKGREEN":["BA11"],"FLORIDAEXPRESS":["BA11"],"ROYALJORDANIAN":["L101"],"LUFTHANSA YELLOW":["B732"],"AEROASIA":["BA11"],"LUFTHANSA CLASSIC":["B732"],"D-FAYX":["TBM7"],"CP":["B732"],"CATHAYPACIFIC":["L101"],"TWA":["L101"],"1LEGACYFLIGHT":["L101"],"LAM":["L101"],"ZBRANIFFBLUE":["BA11"],"2-PLAY":["TBM7"],"BWIA":["L101"],"AMERICAWEST":["B731"],"AIRTRANSAT":["L101"],"THAI":["B732"],"CONTINENTAL":["B731","B735"],"AVIANCA":["B731"],"ALGERIANAIRFORCE":["L101"],"ZBRANIFFLIGHTGREEN":["BA11"],"POKO":["BA11","TBM7"],"ANGOLAAIRLINES":["L101"],"LUFTHANSA OLD":["B732"],"AIRFRANCE":["L101"],"BRITISHAIRTOURS":["L101"],"CONDOR":["B731"],"HAWAIIAN":["L101"],"AEROPERú":["L101"],"LUFTHANSA":["B731","B734","B735"],"TAP":["L101"],"AIRCALIFORNIA":["B731"],"LTU":["L101"],"AIRTRANSATTHEOTHERONE":["L101"],"ZBRANIFFLIGHTYELLOW":["BA11"],"ANA":["B732","B735"],"ZBRANIFFDARKBLUE":["BA11"],"PANAM":["L101"],"SAUDIA":["L101"],"STARGAZERNG":["L101"],"BOEING":["B731"],"CANADAIR":["CL60"],"N275LH":["TBM7"],"WORLDWAYS":["L101"],"PIEDMONT1":["B734"],"OCEANIC":["B73D"],"SOUTHWEST":["B73D"],"STARGAZERORBITAL":["L101"],"LEGACY":["BA11"],"GRAY":["A10"],"USAIR":["BA11","B732","B734","B73D"],"QANTAS":["B734"],"ZBRANIFFPALEORANGE":["BA11"],"CONTINETNAL":["B732"],"NASA":["B731"],"CYPRUS":["BA11"],"SWA":["B735"],"GREEN":["A10"],"BRITISHAIRWAYS":["BA11","L101"],"SUNINTERNATIONAL":["B731"],"CHINA SOUTHERN":["B735"],"HOMELIVERY":["BA11"],"MAERSKAIR":["B734"],"AERLINGUS":["BA11","L101"],"PSA":["L101"],"HALLOWEEN ":["BA11"],"QATAR":["B73D"],"ZBRANIFFPALE":["BA11"],"QUEBECAIR":["BA11"],"AIRCANADA":["L101"],"TRANS AERO":["B732"],"2POKO":["L101"],"SAS":["BA11","B735"],"AMERICAN":["B732"],"UNITED":["B732","L101"],"ZBRANIFFEMERALD":["BA11"],"AER LINGUS":["B735"],"SWISSAIR":["BA11"],"DRAGONAIR":["L101"],"ZBRANIFFRED":["BA11"],"ALOHA":["BA11"]};
 
-    /********************************************************
-      UI elements
-    *********************************************************/
     const fileInput = document.getElementById('fileInput');
     const planeSelect = document.getElementById('planeSelect');
     const liverySelect = document.getElementById('liverySelect');
     const robloxIdInput = document.getElementById('robloxId');
     const robloxBadge = document.getElementById('robloxBadge');
-    const robloxHelper = document.getElementById('robloxHelper');
     const submitBtn = document.getElementById('submitBtn');
     const uploadStatus = document.getElementById('uploadStatus');
     const progressBar = document.getElementById('progressBar');
     const progressInner = progressBar.querySelector('div');
 
-    // helper maps
     const icaoToAircraft = Object.fromEntries(aircraftList.map(a => [a.icao, a]));
 
-    // Populate plane select
     function populatePlanes(defaultICAO=null){
       planeSelect.innerHTML = '';
       aircraftList.forEach(a => {
@@ -267,7 +321,6 @@
       populateLiveriesForPlane(planeSelect.value, liverySelect.value);
     }
 
-    // initial population
     populatePlanes();
     populateLiveriesForPlane(planeSelect.value);
 
@@ -283,9 +336,6 @@
       updateSubmitState();
     });
 
-    /********************************************************
-      Roblox ID validation via RoProxy
-    *********************************************************/
     let validateTimer = null;
     let lastValidatedId = null;
     let lastValidResult = null;
@@ -330,7 +380,6 @@
         return;
       }
 
-      // checking badge
       robloxBadge.innerHTML = '';
       const checking = document.createElement('div');
       checking.className = 'badge';
@@ -349,23 +398,19 @@
           lastValidResult = data;
           const display = data.displayName || data.name || ('@' + data.id);
           setBadgeValid(display);
-          robloxHelper.textContent = 'Validated via RoProxy.';
         } else if(r.status === 404){
           lastValidatedId = id;
           lastValidResult = null;
           setBadgeInvalid('Not found');
-          robloxHelper.textContent = 'No Roblox user with that ID.';
         } else {
           lastValidatedId = id;
           lastValidResult = null;
           setBadgeInvalid('Validation failed');
-          robloxHelper.textContent = 'Validation failed — try again';
         }
       } catch (err) {
         lastValidatedId = id;
         lastValidResult = null;
         setBadgeInvalid('Network error');
-        robloxHelper.textContent = 'Network error while validating — try again';
       }
       updateSubmitState();
     }
@@ -377,7 +422,6 @@
       validateTimer = setTimeout(()=> validateRobloxId(cleaned), 600);
       lastValidResult = null;
       clearBadge();
-      robloxHelper.textContent = 'ID must be numeric. Validation via RoProxy.';
       updateSubmitState();
     });
 
@@ -387,9 +431,6 @@
       validateRobloxId(id);
     });
 
-    /********************************************************
-      Canvas & cropper code
-    *********************************************************/
     const mainCanvas = document.getElementById('mainCanvas');
     const ctx = mainCanvas.getContext('2d', {alpha:false});
     const previewCanvas = document.getElementById('previewCanvas');
@@ -606,9 +647,6 @@
       state.dragging = false; state.resizing = false; state.resizeEdge = null;
     });
 
-    /********************************************************
-      File input handling
-    *********************************************************/
     fileInput.addEventListener('change', () => {
       const f = fileInput.files[0];
       if(!f) return;
@@ -628,9 +666,6 @@
       image.src = url;
     });
 
-    /********************************************************
-      Live preview
-    *********************************************************/
     function updatePreview(){
       if(!imgLoaded){
         pctx.fillStyle = '#000';
@@ -663,9 +698,6 @@
       pctx.drawImage(image, srcX, srcY, srcW, srcH, 0, 0, previewCanvas.width, previewCanvas.height);
     }
 
-    /********************************************************
-      SUPABASE UPLOAD
-    *********************************************************/
     function buildPath(filename){
       const ts = new Date().toISOString().replace(/[:.]/g,'-');
       const ext = (filename.split('.').pop() || 'jpg').toLowerCase();
@@ -707,7 +739,6 @@
       progressInner.style.width = '10%';
       uploadStatus.textContent = 'Uploading file...';
 
-      // Upload to storage bucket
       const { data: uploadData, error: uploadErr } = await supabaseClient.storage
         .from('images')
         .upload(path, file, { 
@@ -719,7 +750,6 @@
         console.error('Upload error:', uploadErr);
         progressBar.style.display = 'none';
         
-        // Provide helpful error messages
         if (uploadErr.message && uploadErr.message.includes('Bucket not found')) {
           throw new Error('Storage bucket "photos" not found. Please create it in Supabase Dashboard → Storage → New Bucket (name: photos, make it public)');
         } else if (uploadErr.message && uploadErr.message.includes('permission')) {
@@ -732,7 +762,6 @@
       progressInner.style.width = '50%';
       uploadStatus.textContent = 'Getting public URL...';
 
-      // Get public URL
       const { data: publicData } = supabaseClient.storage
         .from('images')
         .getPublicUrl(path);
@@ -746,7 +775,6 @@
       progressInner.style.width = '75%';
       uploadStatus.textContent = 'Saving metadata...';
 
-      // Insert metadata into photos table
       const insertRow = {
         file_path: path,
         public_url: publicUrl,
@@ -765,7 +793,6 @@
       if(rowErr){
         console.error('Metadata insert error:', rowErr);
         
-        // Provide helpful error messages
         if (rowErr.message && rowErr.message.includes('relation') && rowErr.message.includes('does not exist')) {
           progressBar.style.display = 'none';
           throw new Error('Table "photos" does not exist. Please create it in Supabase Dashboard');
@@ -774,7 +801,6 @@
           throw new Error('Permission denied for table insert. Check RLS policies');
         }
         
-        // Try to cleanup uploaded file
         try { 
           await supabaseClient.storage.from('photos').remove([path]); 
         } catch(cleanupErr) {
@@ -795,9 +821,6 @@
       return { row: rowData, publicUrl };
     }
 
-    /********************************************************
-      Submit handler
-    *********************************************************/
     submitBtn.addEventListener('click', async () => {
       const file = fileInput.files[0];
       const plane = planeSelect.value;
@@ -835,11 +858,7 @@
       }
     });
 
-    /********************************************************
-      Init & responsiveness
-    *********************************************************/
     function init(){
-      // Supabase should already be initialized at script load
       console.log('Supabase client:', supabaseClient);
       
       populatePlanes();
