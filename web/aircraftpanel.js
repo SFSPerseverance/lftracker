@@ -306,7 +306,7 @@ window.showAircraftDetails = async function (aircraft) {
 
   const airlineEl = document.getElementById('aircraft-airline');
   const baseCallsign = aircraft.callsign.split('-')[0].toUpperCase();
-  const airline = callsignToAirline[baseCallsign] || 'Unknown Airline';
+  const airline = callsignToAirline[baseCallsign] || 'Privarte / Unknown';
   const prefix = 'Operated by: ';
 
   typeEl.innerHTML = `
