@@ -1,4 +1,3 @@
-<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -677,7 +676,7 @@
       const ts = new Date().toISOString().replace(/[:.]/g,'-');
       const ext = (filename.split('.').pop() || 'jpg').toLowerCase();
       const rand = Math.random().toString(36).slice(2,9);
-      return `images/${ts}_${rand}.${ext}`;
+      return `photos/${ts}_${rand}.${ext}`;
     }
 
     function computeCropJson(){
@@ -716,7 +715,7 @@
 
       // Upload to storage bucket
       const { data: uploadData, error: uploadErr } = await supabaseClient.storage
-        .from('images')
+        .from('photos')
         .upload(path, file, { 
           cacheControl: '3600', 
           upsert: false 
@@ -725,6 +724,14 @@
       if(uploadErr){
         console.error('Upload error:', uploadErr);
         progressBar.style.display = 'none';
+        
+        // Provide helpful error messages
+        if (uploadErr.message && uploadErr.message.includes('Bucket not found')) {
+          throw new Error('Storage bucket "photos" not found. Please create it in Supabase Dashboard → Storage → New Bucket (name: photos, make it public)');
+        } else if (uploadErr.message && uploadErr.message.includes('permission')) {
+          throw new Error('Permission denied. Check your bucket policies in Supabase Dashboard');
+        }
+        
         throw new Error(uploadErr.message || 'Upload failed');
       }
 
@@ -733,7 +740,7 @@
 
       // Get public URL
       const { data: publicData } = supabaseClient.storage
-        .from('images')
+        .from('photos')
         .getPublicUrl(path);
 
       const publicUrl = publicData?.publicUrl || null;
@@ -751,21 +758,31 @@
         public_url: publicUrl,
         icao: meta.icao,
         livery: meta.livery,
-        uploader_id: meta.robloxId,
+        roblox_id: meta.robloxId,
         crop_json: meta.crop || null
       };
 
       const { data: rowData, error: rowErr } = await supabaseClient
-        .from('images')
+        .from('photos')
         .insert([insertRow])
         .select()
         .single();
 
       if(rowErr){
         console.error('Metadata insert error:', rowErr);
+        
+        // Provide helpful error messages
+        if (rowErr.message && rowErr.message.includes('relation') && rowErr.message.includes('does not exist')) {
+          progressBar.style.display = 'none';
+          throw new Error('Table "photos" does not exist. Please create it in Supabase Dashboard');
+        } else if (rowErr.message && rowErr.message.includes('permission')) {
+          progressBar.style.display = 'none';
+          throw new Error('Permission denied for table insert. Check RLS policies');
+        }
+        
         // Try to cleanup uploaded file
         try { 
-          await supabaseClient.storage.from('images').remove([path]); 
+          await supabaseClient.storage.from('photos').remove([path]); 
         } catch(cleanupErr) {
           console.error('Cleanup error:', cleanupErr);
         }
