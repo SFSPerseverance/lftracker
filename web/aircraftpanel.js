@@ -107,6 +107,83 @@ async function getRobloxUsername(userId) {
   }
 }
 
+const callsignToAirline = {
+  "HONG KONG DRAGON": "Dragonair",
+  "MALÉV": "Malév",
+  "RCAF": "Royal Canadian Air Force",
+  "DEV": "Developer",
+  "HAPAG LLOYD": "Hapag-Lloyd",
+  "BRANIFF": "Braniff International",
+  "SPEEDBIRD": "British Airways",
+  "KLM": "KLM Royal Dutch Airlines",
+  "FLA PALM": "Air Florida x Singapore Airlines",
+  "MAERSKAIR": "Malaysian Airlines",
+  "SAUDIA": "Saudia",
+  "ROY": "Royal Canada",
+  "BAHAMAS": "Bahamasair",
+  "PEOPLE": "People Express",
+  "DELTA": "Delta Air Lines",
+  "EASTERN": "Eastern Air Lines",
+  "HAWAIIAN": "Hawaiian Airlines",
+  "SUN": "Sun International",
+  "INDAIR": "Indian Airlines",
+  "CLIPPER": "Pan Am",
+  "OCEANIC": "Oceanic Airlines",
+  "SHAMROCK": "Aer Lingus",
+  "CSN": "China Southern",
+  "THAI": "Thai Airways",
+  "ANSETT": "Ansett Australia",
+  "PIEDMONT": "Piedmont Airlines",
+  "MOZAMBIQUE": "LAM Mozambique Airlines",
+  "AIR TRANSAT": "Air Transat",
+  "JORDANIAN": "Royal Jordanian",
+  "CONDOR": "Condor",
+  "BAC": "Home Delivery",
+  "ALL NIPPON": "CP (All Nippon Airways)",
+  "CATHAY": "Cathay Pacific",
+  "RYANAIR": "Ryanair",
+  "CACTUS": "America West",
+  "TAG AVIATION": "TAG Aviation",
+  "WORLDWAYS": "Worldways Canada",
+  "LEGACY": "Legacy",
+  "AVIANCA": "Avianca",
+  "POKO": "Poko",
+  "CONTINENTAL": "Continental Airlines",
+  "AIRFRANS": "Air France",
+  "FLEXAIR": "Florida Express",
+  "AERO ASIA": "Aero Asia",
+  "SAS": "Scandinavian Airlines",
+  "SCANDINAVIAN": "Scandinavian Airlines",
+  "AEROPERÚ": "Aeroperú",
+  "LUFTHANSA": "Lufthansa",
+  "AIR PORTUGAL": "TAP Air Portugal",
+  "AIRCAL": "Air California",
+  "ANA": "All Nippon Airways",
+  "EMPRESS": "ANA Cargo",
+  "BOEING": "Boeing",
+  "CANADAIR": "Canadair",
+  "ALOHA": "Aloha Airlines",
+  "QUEBECAIR": "Quebecair",
+  "CYPRUS": "Cyprus Airways",
+  "LTU": "LTU International",
+  "DUB": "Emirates (Dubai)",
+  "USAIR": "USAir",
+  "QANTAS": "Qantas",
+  "NASA": "NASA",
+  "TWA": "Trans World Airlines",
+  "SOUTHWEST": "Southwest Airlines",
+  "THAI AIR": "Thai Airways",
+  "AMERICAN": "American Airlines",
+  "BEATOURS": "British Airtours",
+  "WEST INDIAN": "BWIA West Indies Airways",
+  "AIR CANADA": "Air Canada",
+  "TRANSAERO": "Transaero Airlines",
+  "UNITED": "United Airlines",
+  "ALPHA USER": "Alpha User",
+  "SWISSAIR": "Swissair",
+  "DTA": "Angola Airlines"
+};
+
 // Fetch aircraft image from Supabase
 async function getAircraftImage(icao, livery) {
   const client = getSupabaseClient();
@@ -228,7 +305,7 @@ window.showAircraftDetails = async function (aircraft) {
   const rest = (aircraft.airframe || '') + (aircraft.subtype || '');
 
   const airlineEl = document.getElementById('aircraft-airline');
-  const airline = aircraft.airline || 'Unknown Airline';
+  const airline = callsignToAirline[aircraft.callsign] || 'Unknown Airline';
   const prefix = 'Operated by: ';
 
   typeEl.innerHTML = `
