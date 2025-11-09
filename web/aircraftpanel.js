@@ -271,7 +271,8 @@ window.showAircraftDetails = async function (aircraft) {
 
   // Fetch aircraft image from Supabase
   const icao = aircraft.icao || 'UNKN';
-  const livery = aircraft.airline || 'Default'; // Use airline as livery, or adjust based on your data structure
+  const baseCallsign = aircraft.callsign.split('-')[0].toUpperCase();
+  const livery = baseCallsign || 'Default'; // Use airline as livery, or adjust based on your data structure
 
   const imageData = await getAircraftImage(icao, livery);
 
@@ -305,8 +306,7 @@ window.showAircraftDetails = async function (aircraft) {
   const rest = (aircraft.airframe || '') + (aircraft.subtype || '');
 
   const airlineEl = document.getElementById('aircraft-airline');
-  const baseCallsign = aircraft.callsign.split('-')[0].toUpperCase();
-  const airline = callsignToAirline[baseCallsign] || 'Privarte / Unknown';
+  const airline = callsignToAirline[baseCallsign] || 'Private / Unknown';
   const prefix = 'Operated by: ';
 
   typeEl.innerHTML = `
