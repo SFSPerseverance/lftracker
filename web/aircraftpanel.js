@@ -262,7 +262,7 @@ window.closeAircraftPanel = function () {
     }
   }
   const url = new URL(location.href);
-  url.searchParams.delete('aircraft');
+  url.searchParams.delete('aircraft');  
   history.pushState({}, '', url.toString());
   window.selectedAircraft = null;
 };
