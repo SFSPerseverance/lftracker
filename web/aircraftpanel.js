@@ -328,7 +328,7 @@ window.showAircraftDetails = async function (aircraft) {
     };
 
     imageContainer.appendChild(img);
-
+    }
   // Update aircraft type
   const typeEl = document.getElementById('aircraft-type');
   const rest = (aircraft.airframe || '') + (aircraft.subtype || '');
