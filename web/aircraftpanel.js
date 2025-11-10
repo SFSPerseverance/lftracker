@@ -280,7 +280,7 @@ window.showAircraftDetails = async function (aircraft) {
   // Clear loading state
   imageContainer.innerHTML = '';
 
-  if (imageData && imageData.url) {
+    if (imageData && imageData.url) {
     const img = document.createElement('img');
     img.src = imageData.url;
     img.alt = `${icao} - ${livery}`;
@@ -296,20 +296,15 @@ window.showAircraftDetails = async function (aircraft) {
           // Use normalized coordinates (0-1 range)
           const { x, y, w, h } = crop.normalized;
           
-          // Convert to percentages for CSS
-          const xPercent = x * 100;
-          const yPercent = y * 100;
-          const wPercent = w * 100;
-          const hPercent = h * 100;
-          
-          // Apply CSS to show only the cropped portion
+          // The image needs to be scaled up and positioned so that only the cropped area is visible
+          // Container shows a "window" into the full image
           img.style.cssText = `
             position: absolute;
-            top: ${-yPercent}%;
-            left: ${-xPercent}%;
             width: ${100 / w}%;
             height: ${100 / h}%;
-            object-fit: none;
+            left: ${-(x / w) * 100}%;
+            top: ${-(y / h) * 100}%;
+            object-fit: fill;
           `;
         } else {
           // Fallback to cover if no normalized coords
