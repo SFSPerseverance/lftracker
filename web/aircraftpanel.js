@@ -272,7 +272,7 @@ window.showAircraftDetails = async function (aircraft) {
   // Fetch aircraft image from Supabase
   const icao = aircraft.icao || 'UNKN';
   const baseCallsign = aircraft.callsign.split('-')[0].toUpperCase();
-  const livery = baseCallsign || 'Default'; // Use airline as livery, or adjust based on your data structure
+  const livery = aircraft.livery.toUpperCase() || 'GENERIC'; // Use airline as livery, or adjust based on your data structure
 
   const imageData = await getAircraftImage(icao, livery);
 
