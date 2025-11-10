@@ -472,6 +472,10 @@
       updateSubmitState();
     });
 
+    uploaderNameInput.addEventListener('input', () => {
+     updateSubmitState();
+   });
+
     function updateSubmitState() {
       const hasImage = !!fileInput.files[0];
       const plane = planeSelect.value;
