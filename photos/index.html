@@ -221,7 +221,7 @@
       transition: opacity 160ms ease;
     }
 
-    #robloxId {
+    #uploaderName {
       cursor: text;
     }
 
@@ -343,11 +343,8 @@
         <label for="liverySelect">Livery</label>
         <select id="liverySelect" class="control" aria-label="Livery"></select>
 
-        <label for="robloxId">Roblox user ID</label>
-        <div class="inline-row">
-          <input id="robloxId" type="text" placeholder="Enter your Roblox user ID" class="control" style="flex:1" />
-          <div id="robloxBadge" style="flex:0 0 auto; margin-left:6px;"></div>
-        </div>
+        <label for="uploaderName">Name to use for upload</label>
+        <input id="uploaderName" type="text" placeholder="Enter your name" class="control" />
 
         <button id="submitBtn" class="submit-btn control" disabled>Upload</button>
 
@@ -407,8 +404,7 @@
     const fileInput = document.getElementById('fileInput');
     const planeSelect = document.getElementById('planeSelect');
     const liverySelect = document.getElementById('liverySelect');
-    const robloxIdInput = document.getElementById('robloxId');
-    const robloxBadge = document.getElementById('robloxBadge');
+    const uploaderNameInput  = document.getElementById('uploaderName');
     const submitBtn = document.getElementById('submitBtn');
     const uploadStatus = document.getElementById('uploadStatus');
     const progressBar = document.getElementById('progressBar');
@@ -476,100 +472,13 @@
       updateSubmitState();
     });
 
-    let validateTimer = null;
-    let lastValidatedId = null;
-    let lastValidResult = null;
-
-    function setBadgeValid(name) {
-      robloxBadge.innerHTML = '';
-      const span = document.createElement('div');
-      span.className = 'badge';
-      span.textContent = name;
-      robloxBadge.appendChild(span);
-    }
-    function setBadgeInvalid(msg) {
-      robloxBadge.innerHTML = '';
-      const span = document.createElement('div');
-      span.className = 'badge invalid';
-      span.textContent = msg;
-      robloxBadge.appendChild(span);
-    }
-    function clearBadge() { robloxBadge.innerHTML = ''; }
-
-    function isNumericId(s) { return /^\d+$/.test(s); }
-
     function updateSubmitState() {
       const hasImage = !!fileInput.files[0];
       const plane = planeSelect.value;
       const livery = liverySelect.value;
-      const robloxOk = !!lastValidResult;
-      submitBtn.disabled = !(hasImage && plane && livery && robloxOk);
+      const nameOk = uploaderNameInput.value.trim().length > 0;
+      submitBtn.disabled = !(hasImage && plane && livery && nameOk);
     }
-
-    async function validateRobloxId(id) {
-      if (!id || !isNumericId(id)) {
-        lastValidatedId = id;
-        lastValidResult = null;
-        setBadgeInvalid('Invalid ID');
-        updateSubmitState();
-        return;
-      }
-      if (lastValidatedId === id && lastValidResult) {
-        setBadgeValid(lastValidResult.displayName || lastValidResult.name || ('@' + lastValidResult.id));
-        updateSubmitState();
-        return;
-      }
-
-      robloxBadge.innerHTML = '';
-      const checking = document.createElement('div');
-      checking.className = 'badge';
-      checking.style.background = 'transparent';
-      checking.style.color = 'var(--white)';
-      checking.style.border = '2px solid rgba(255,255,255,0.08)';
-      checking.textContent = 'Checking...';
-      robloxBadge.appendChild(checking);
-
-      const endpoint = `https://users.roproxy.com/v1/users/${encodeURIComponent(id)}`;
-      try {
-        const r = await fetch(endpoint, { method: 'GET' });
-        if (r.ok) {
-          const data = await r.json();
-          lastValidatedId = id;
-          lastValidResult = data;
-          const display = data.displayName || data.name || ('@' + data.id);
-          setBadgeValid(display);
-        } else if (r.status === 404) {
-          lastValidatedId = id;
-          lastValidResult = null;
-          setBadgeInvalid('Not found');
-        } else {
-          lastValidatedId = id;
-          lastValidResult = null;
-          setBadgeInvalid('Validation failed');
-        }
-      } catch (err) {
-        lastValidatedId = id;
-        lastValidResult = null;
-        setBadgeInvalid('Network error');
-      }
-      updateSubmitState();
-    }
-
-    robloxIdInput.addEventListener('input', (e) => {
-      const cleaned = (e.target.value || '').replace(/[^\d]/g, '');
-      if (cleaned !== e.target.value) e.target.value = cleaned;
-      if (validateTimer) clearTimeout(validateTimer);
-      validateTimer = setTimeout(() => validateRobloxId(cleaned), 600);
-      lastValidResult = null;
-      clearBadge();
-      updateSubmitState();
-    });
-
-    robloxIdInput.addEventListener('blur', (e) => {
-      const id = (e.target.value || '').trim();
-      if (validateTimer) { clearTimeout(validateTimer); validateTimer = null; }
-      validateRobloxId(id);
-    });
 
     const mainCanvas = document.getElementById('mainCanvas');
     const ctx = mainCanvas.getContext('2d', { alpha: true });
@@ -982,7 +891,7 @@
       const file = fileInput.files[0];
       const plane = planeSelect.value;
       const livery = liverySelect.value;
-      const robloxId = robloxIdInput.value.trim();
+      const robloxId = uploaderNameInput.value.trim();
 
       if (!file || !plane || !livery || !lastValidResult) {
         // uploadStatus.textContent = 'Fill all fields and validate Roblox ID.';
