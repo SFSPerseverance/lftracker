@@ -846,7 +846,7 @@
         public_url: publicUrl,
         icao: meta.icao,
         livery: meta.livery,
-        uploader_id: meta.robloxId,
+        uploader_id: meta.uploaderName,
         crop_json: meta.crop || null
       };
 
@@ -891,9 +891,9 @@
       const file = fileInput.files[0];
       const plane = planeSelect.value;
       const livery = liverySelect.value;
-      const robloxId = uploaderNameInput.value.trim();
+      const uploaderName = uploaderNameInput.value.trim();
 
-      if (!file || !plane || !livery || !lastValidResult) {
+      if (!file || !plane || !livery || !uploaderName) {
         // uploadStatus.textContent = 'Fill all fields and validate Roblox ID.';
         return;
       }
@@ -906,7 +906,7 @@
       const meta = {
         icao: plane,
         livery: livery,
-        robloxId: robloxId,
+        uploaderName: uploaderName,
         crop: cropJson
       };
 
