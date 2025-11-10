@@ -807,7 +807,7 @@
 
       progressBar.style.display = 'block';
       progressInner.style.width = '10%';
-      //uploadStatus.textContent = 'Uploading file...';
+      uploadStatus.textContent = 'Uploading file...';
 
       const { data: uploadData, error: uploadErr } = await supabaseClient.storage
         .from('images')
@@ -830,7 +830,7 @@
       }
 
       progressInner.style.width = '50%';
-      //uploadStatus.textContent = 'Getting public URL...';
+      uploadStatus.textContent = 'Getting public URL...';
 
       const { data: publicData } = supabaseClient.storage
         .from('images')
@@ -843,7 +843,7 @@
       }
 
       progressInner.style.width = '75%';
-      //uploadStatus.textContent = 'Saving metadata...';
+      uploadStatus.textContent = 'Saving metadata...';
 
       const insertRow = {
         file_path: path,
@@ -881,7 +881,7 @@
       }
 
       progressInner.style.width = '100%';
-      // uploadStatus.textContent = 'Upload complete!';
+       uploadStatus.textContent = 'Upload complete!';
 
       setTimeout(() => {
         progressBar.style.display = 'none';
