@@ -280,55 +280,40 @@ window.showAircraftDetails = async function (aircraft) {
   // Clear loading state
   imageContainer.innerHTML = '';
 
-    if (imageData && imageData.url) {
+  if (imageData && imageData.url) {
     const img = document.createElement('img');
     img.src = imageData.url;
     img.alt = `${icao} - ${livery}`;
-    
-    // Apply crop if crop_json exists
-    if (imageData && imageData.url) {
-    const img = document.createElement('img');
-    img.src = imageData.url;
-    img.alt = `${icao} - ${livery}`;
-    
-    // Apply crop if crop_json exists
-    if (imageData.cropJson) {
-      try {
-        const crop = typeof imageData.cropJson === 'string' 
-          ? JSON.parse(imageData.cropJson) 
-          : imageData.cropJson;
-        
-        if (crop.normalized) {
-          // Use normalized coordinates (0-1 range)
-          const { x, y, w, h } = crop.normalized;
-          
-          // Scale and position the image so the cropped region fills and covers the container
-          img.style.cssText = `
-            position: absolute;
-            width: ${100 / w}%;
-            height: ${100 / h}%;
-            left: ${-(x / w) * 100}%;
-            top: ${-(y / h) * 100}%;
-            object-fit: cover;
-          `;
-        } else {
-          // Fallback to cover if no normalized coords
-          img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
-        }
-      } catch (e) {
-        console.error('Error parsing crop_json:', e);
-        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
-      }
-    } else {
-      img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
-    }
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.objectFit = 'cover';
 
     img.onerror = () => {
       imageContainer.innerHTML = '<div>Image failed to load</div>';
     };
 
     imageContainer.appendChild(img);
+
+    // ADD THIS: Display uploader name
+    if (imageData.uploaderId) {
+      const uploaderText = document.createElement('div');
+      uploaderText.textContent = `Photo by ${imageData.uploaderId}`;
+      uploaderText.style.cssText = `
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      font-size: 8px;
+      color: rgba(255,255,255,0.8);
+      background: rgba(0,0,0,0.6);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: 'Press Start 2P', monospace;
+    `;
+      imageContainer.style.position = 'relative';
+      imageContainer.appendChild(uploaderText);
+    }
   }
+
   // Update aircraft type
   const typeEl = document.getElementById('aircraft-type');
   const rest = (aircraft.airframe || '') + (aircraft.subtype || '');
