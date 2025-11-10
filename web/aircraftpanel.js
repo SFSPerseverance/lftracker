@@ -286,6 +286,12 @@ window.showAircraftDetails = async function (aircraft) {
     img.alt = `${icao} - ${livery}`;
     
     // Apply crop if crop_json exists
+    if (imageData && imageData.url) {
+    const img = document.createElement('img');
+    img.src = imageData.url;
+    img.alt = `${icao} - ${livery}`;
+    
+    // Apply crop if crop_json exists
     if (imageData.cropJson) {
       try {
         const crop = typeof imageData.cropJson === 'string' 
@@ -296,15 +302,14 @@ window.showAircraftDetails = async function (aircraft) {
           // Use normalized coordinates (0-1 range)
           const { x, y, w, h } = crop.normalized;
           
-          // The image needs to be scaled up and positioned so that only the cropped area is visible
-          // Container shows a "window" into the full image
+          // Scale and position the image so the cropped region fills and covers the container
           img.style.cssText = `
             position: absolute;
             width: ${100 / w}%;
             height: ${100 / h}%;
             left: ${-(x / w) * 100}%;
             top: ${-(y / h) * 100}%;
-            object-fit: fill;
+            object-fit: cover;
           `;
         } else {
           // Fallback to cover if no normalized coords
@@ -323,7 +328,6 @@ window.showAircraftDetails = async function (aircraft) {
     };
 
     imageContainer.appendChild(img);
-  }
 
   // Update aircraft type
   const typeEl = document.getElementById('aircraft-type');
