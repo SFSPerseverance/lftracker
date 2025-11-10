@@ -196,7 +196,7 @@ async function getAircraftImage(icao, livery) {
     // Query the images table for matching ICAO and livery
     const { data, error } = await client
       .from('images')
-      .select('public_url, crop_json, created_at')
+      .select('public_url, crop_json, created_at, uploader_id')
       .eq('icao', icao)
       .eq('livery', livery)
       .order('created_at', { ascending: false })
@@ -210,7 +210,8 @@ async function getAircraftImage(icao, livery) {
     if (data && data.length > 0) {
       return {
         url: data[0].public_url,
-        cropJson: data[0].crop_json
+        cropJson: data[0].crop_json,
+        uploaderId: data[0].uploader_id  // ADD THIS
       };
     }
 
@@ -286,19 +287,31 @@ window.showAircraftDetails = async function (aircraft) {
     img.style.width = '100%';
     img.style.height = '100%';
     img.style.objectFit = 'cover';
-    
-    // Handle image load error
+
     img.onerror = () => {
       imageContainer.innerHTML = '<div>Image failed to load</div>';
     };
-    
+
     imageContainer.appendChild(img);
-  } else {
-    // Show placeholder if no image found
-    const placeholderText = document.createElement('div');
-    placeholderText.textContent = 'No Image Available';
-    placeholderText.style.color = 'rgba(255,255,255,0.3)';
-    imageContainer.appendChild(placeholderText);
+
+    // ADD THIS: Display uploader name
+    if (imageData.uploaderId) {
+      const uploaderText = document.createElement('div');
+      uploaderText.textContent = `Photo by ${imageData.uploaderId}`;
+      uploaderText.style.cssText = `
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      font-size: 8px;
+      color: rgba(255,255,255,0.8);
+      background: rgba(0,0,0,0.6);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: 'Press Start 2P', monospace;
+    `;
+      imageContainer.style.position = 'relative';
+      imageContainer.appendChild(uploaderText);
+    }
   }
 
   // Update aircraft type
@@ -340,7 +353,7 @@ window.closeAircraftPanel = function () {
     }
   }
   const url = new URL(location.href);
-  url.searchParams.delete('aircraft');  
+  url.searchParams.delete('aircraft');
   history.pushState({}, '', url.toString());
   window.selectedAircraft = null;
 };
