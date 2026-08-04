@@ -1,13 +1,20 @@
 /* Aircraft Details Panel Styles */
 /* Easy customization guide at the bottom! */
 
+:root{
+  --panel-width: clamp(300px, 22%, 420px);
+  --panel-offset: 24px; /* distance from viewport edges when open */
+}
+
 /* Main panel container */
 #aircraft-panel {
     position: fixed;
-    left: -20%;
-    top: 0;
-    width: 20%;
-    height: 100vh;
+    /* start hidden off the left side by one panel width + offset */
+    left: calc(-1 * (var(--panel-width) + var(--panel-offset)));
+    top: var(--panel-offset);
+    width: var(--panel-width);
+    bottom: var(--panel-offset);
+    height: auto;
     background: linear-gradient(90deg, rgba(255,170,0,0.1) 0%, rgba(156, 112, 0,0.1) 15%, rgba(156, 112, 0,0.1) 85%,rgba(255,170,0,0.1) 100%), rgba(26, 26, 26,0.7);
     background-blend-mode:  normal;
     backdrop-filter: blur(10px); /* adjust the blur amount */
@@ -19,31 +26,44 @@
     padding: 20px;
     box-sizing: border-box;
     z-index: 10000;
-    transition: left 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+    transition: left 0.36s cubic-bezier(0.4, 0.0, 0.2, 1);
     overflow-y: auto;
-    overflow: hidden;
     font-family: 'Press Start 2P', cursive;
     color: white;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* Panel when open */
 #aircraft-panel.open {
-    transform: translateX(10px);
+    left: var(--panel-offset);
 }
 
 /* Callsign header */
 #aircraft-callsign {
     font-size: 16px;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
+    text-align: left;
+    word-break: normal; /* prevent mid-word clipping */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 64px; /* ensure close button never overlaps */
+}
+
+#aircraft-pilot {
+    font-size: 10px;
+    margin-bottom: 12px;
     text-align: left;
     word-break: break-word;
 }
 
-#aircraft-pilot {
-    font-size: 8px;
-    margin-bottom: 20px;
-    text-align: left;
-    word-break: break-word;
+/* Row to contain type + operator side-by-side */
+#aircraft-type-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 16px;
 }
 
 /* Image container (16:9 aspect ratio) */
@@ -53,11 +73,12 @@
     background-color: rgb(40, 40, 40);
     border: 2px solid rgb(255, 170, 0);
     border-radius: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    position: relative;
 }
 
 /* Image inside container */
@@ -79,6 +100,9 @@
     font-family: inherit;
     text-align: left;
     word-break: break-word;
+    display:flex;
+    align-items:center;
+    gap:8px;
 }
 
 .icao-badge {
@@ -100,25 +124,57 @@
 .airframe-text {
     font-size: 12px;
     color: rgb(255, 255, 255);
-    margin-left: 4px;
 }
 
-/* Close button (X) */
+/* Operator/airline on the right */
+#aircraft-airline{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    text-align:right;
+    gap:8px;
+    font-size:11px;
+}
+
+/* Close button (X) - larger hit target for touch */
 #aircraft-panel-close {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
+    top: 12px;
+    right: 12px;
+    background: rgba(0,0,0,0.12);
     border: none;
     color: rgb(255, 170, 0);
-    font-size: 24px;
+    font-size: 20px;
     cursor: pointer;
     font-family: Arial, sans-serif;
-    padding: 5px 10px;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 8px;
     line-height: 1;
+    -webkit-tap-highlight-color: transparent;
 }
 
 #aircraft-panel-close:hover {
     color: white;
+    background: rgba(255,255,255,0.02);
 }
 
+/* Small screens: make the panel use most of the width but keep 24px gap */
+@media (max-width: 700px){
+  :root{ --panel-width: calc(100% - 48px); }
+  #aircraft-panel{
+    left: calc(-1 * (var(--panel-width) + var(--panel-offset)));
+    width: var(--panel-width);
+    right: var(--panel-offset);
+    top: var(--panel-offset);
+    bottom: var(--panel-offset);
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    border-left: 3px solid rgba(255,170,0,0.12);
+  }
+  #aircraft-callsign{ font-size:15px; }
+}
