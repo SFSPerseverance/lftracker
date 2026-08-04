@@ -6,6 +6,11 @@
   --panel-offset: 24px; /* distance from viewport edges when open */
 }
 
+/* Prevent any accidental horizontal scrolling on small devices */
+html, body {
+  overflow-x: hidden;
+}
+
 /* Main panel container */
 #aircraft-panel {
     position: fixed;
@@ -20,14 +25,13 @@
     backdrop-filter: blur(10px); /* adjust the blur amount */
     -webkit-backdrop-filter: blur(10px); 
     border: 3px solid rgb(255, 170, 0);
-    border-left: none;
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
+    border-radius: 12px; /* rounded on all corners */
     padding: 20px;
     box-sizing: border-box;
     z-index: 10000;
     transition: left 0.36s cubic-bezier(0.4, 0.0, 0.2, 1);
     overflow-y: auto;
+    overflow-x: hidden; /* prevent internal horizontal scrollbar */
     font-family: 'Press Start 2P', cursive;
     color: white;
     -webkit-tap-highlight-color: transparent;
@@ -60,10 +64,29 @@
 /* Row to contain type + operator side-by-side */
 #aircraft-type-row{
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 8px;
+    gap: 12px;
     margin-bottom: 16px;
+}
+
+/* Column inside the type-row for the left (type) */
+.aircraft-type-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+    min-width: 0; /* allow ellipsis on children */
+}
+
+/* Column inside the type-row for the right (operator) */
+.aircraft-operator-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-end;
+    text-align: right;
+    min-width: 0;
 }
 
 /* Image container (16:9 aspect ratio) */
@@ -100,21 +123,32 @@
     font-family: inherit;
     text-align: left;
     word-break: break-word;
-    display:flex;
-    align-items:center;
-    gap:8px;
+}
+
+.type-text {
+    font-size: 12px;
+    color: rgb(255,255,255);
+}
+
+.type-badge { 
+    margin-top: 2px;
 }
 
 .icao-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background: linear-gradient(90deg, rgb(255,170,0) 0%, rgb(156, 112, 0) 15%, rgb(156, 112, 0) 85%,rgb(255,170,0) 100%);
     color: white;
     padding: 4px 8px;
-    border-radius: 4px;
+    border-radius: 6px;
     border: 2px solid rgb(255,170,0);
     font-weight: bold;
     font-size: 10px;
-     text-shadow: 
+    white-space: nowrap;
+    box-sizing: border-box;
+    z-index: 2; /* ensure it's above backgrounds */
+    text-shadow: 
     -1px -1px 0 black,
      1px -1px 0 black,
     -1px  1px 0 black,
@@ -126,14 +160,24 @@
     color: rgb(255, 255, 255);
 }
 
-/* Operator/airline on the right */
+/* Operator/airline */
 #aircraft-airline{
     display:flex;
-    align-items:center;
-    justify-content:flex-end;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+    justify-content: center;
     text-align:right;
-    gap:8px;
     font-size:11px;
+}
+
+.operator-text {
+    font-size: 11px;
+    color: rgba(255,255,255,0.9);
+}
+
+.operator-badge { 
+    margin-top: 0px;
 }
 
 /* Close button (X) - larger hit target for touch */
@@ -172,8 +216,7 @@
     right: var(--panel-offset);
     top: var(--panel-offset);
     bottom: var(--panel-offset);
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
+    border-radius: 12px;
     border-left: 3px solid rgba(255,170,0,0.12);
   }
   #aircraft-callsign{ font-size:15px; }
