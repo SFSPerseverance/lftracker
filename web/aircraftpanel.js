@@ -8,7 +8,7 @@ const usernameCache = new Map();
 
 // Initialize Supabase client
 const SUPABASE_URL = 'https://qhffydtxzlwoxgllvtif.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoZmZ5ZHR4emx3b3hnbGx2dGlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1NzkwNjAsImV4cCI6MjA3ODE1NTA2MH0.CAacFj8c14KlGu0HJ_1Zjf6hVadaGd5hPJleH8zftIQ';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoZmZ5ZHR4emx3b3hnbGx2dGlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1NzkwNjAsImV4cCI6MjA3ODE1NTA2MH0.CAac[...]'
 
 // Load Supabase if not already loaded
 if (typeof supabase === 'undefined') {
@@ -54,14 +54,20 @@ function createAircraftPanel() {
 
   panel.appendChild(imageContainer);
 
+  // Row for type + operator
+  const typeRow = document.createElement('div');
+  typeRow.id = 'aircraft-type-row';
+
   // Aircraft type
   const aircraftType = document.createElement('div');
   aircraftType.id = 'aircraft-type';
-  panel.appendChild(aircraftType);
+  typeRow.appendChild(aircraftType);
 
   const aircraftAirline = document.createElement('div');
   aircraftAirline.id = 'aircraft-airline';
-  panel.appendChild(aircraftAirline);
+  typeRow.appendChild(aircraftAirline);
+
+  panel.appendChild(typeRow);
 
   // Close button (X in top right of panel)
   const closeButton = document.createElement('button');
@@ -272,8 +278,8 @@ window.showAircraftDetails = async function (aircraft) {
 
   // Fetch aircraft image from Supabase
   const icao = aircraft.icao || 'UNKN';
-  const baseCallsign = aircraft.callsign.split('-')[0].toUpperCase();
-  const livery = aircraft.airline?.toUpperCase() || 'GENERIC'; // Use airline as livery, or adjust based on your data structure
+  const baseCallsign = (aircraft.callsign || '').split('-')[0].toUpperCase();
+  const livery = (aircraft.airline || 'GENERIC').toUpperCase(); // Use airline as livery, or adjust based on your data structure
 
   const imageData = await getAircraftImage(icao, livery);
 
@@ -302,8 +308,8 @@ window.showAircraftDetails = async function (aircraft) {
       position: absolute;
       bottom: 8px;
       left: 8px;
-      font-size: 8px;
-      color: rgba(255,255,255,0.8);
+      font-size: 9px;
+      color: rgba(255,255,255,0.85);
       background: rgba(0,0,0,0.6);
       padding: 4px 8px;
       border-radius: 4px;
@@ -320,27 +326,21 @@ window.showAircraftDetails = async function (aircraft) {
 
   const airlineEl = document.getElementById('aircraft-airline');
   const airline = callsignToAirline[baseCallsign] || 'Private / Unknown';
-  const prefix = 'Operated by: ';
+  const prefix = 'Operated by:';
 
-  typeEl.innerHTML = `
-    <span class="icao-badge">${icao}</span>
-    <span class="airframe-text"> | ${rest}</span>
-  `;
+  typeEl.innerHTML = `<span class="icao-badge">${icao}</span><span class="airframe-text"> | ${rest}</span>`;
 
-  airlineEl.innerHTML = `
-    <span class="airframe-text">${prefix}</span><br>
-    <span class="icao-badge">${airline}</span>
-  `;
+  airlineEl.innerHTML = `<span class="airframe-text">${prefix}</span> <span class="icao-badge">${airline}</span>`;
 
-  // Slide panel in
-  panel.style.left = '0';
+  // Slide panel in by toggling the class (CSS handles offsets)
+  panel.classList.add('open');
 };
 
 // Close the aircraft panel
 window.closeAircraftPanel = function () {
   const panel = document.getElementById('aircraft-panel');
   if (panel) {
-    panel.style.left = '-20%';
+    panel.classList.remove('open');
   }
   if (window.selectedAircraft) {
     const aircraftId = window.selectedAircraft.id || window.selectedAircraft.callsign;
