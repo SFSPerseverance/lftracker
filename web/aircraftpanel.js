@@ -328,9 +328,9 @@ window.showAircraftDetails = async function (aircraft) {
   const airline = callsignToAirline[baseCallsign] || 'Private / Unknown';
   const prefix = 'Operated by:';
 
-  typeEl.innerHTML = `<span class="icao-badge">${icao}</span><span class="airframe-text"> | ${rest}</span>`;
+  typeEl.innerHTML = `\n    <div class="type-text">${rest || 'Unknown'}</div>\n    <div class="type-badge"><span class="icao-badge">${icao}</span></div>\n  `;
 
-  airlineEl.innerHTML = `<span class="airframe-text">${prefix}</span> <span class="icao-badge">${airline}</span>`;
+  airlineEl.innerHTML = `\n    <div class="operator-text">${prefix}</div>\n    <div class="operator-badge"><span class="icao-badge">${airline}</span></div>\n  `;
 
   // Slide panel in by toggling the class (CSS handles offsets)
   panel.classList.add('open');
